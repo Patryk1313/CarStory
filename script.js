@@ -240,15 +240,14 @@ function renderStatuses() {
         : getDefaultVehicleMileage();
 
     statusGrid.innerHTML = appData.statuses
-        .map(
-            (item) => {
-                const statusPresentation = getStatusPresentation(
-                    item,
-                    selectedVehicle,
-                    vehicleMileage,
-                );
+        .map((item) => {
+            const statusPresentation = getStatusPresentation(
+                item,
+                selectedVehicle,
+                vehicleMileage,
+            );
 
-                return `
+            return `
         <article class="status-card status-card--${item.theme}">
             <div class="status-card__top">
                 <span class="status-card__icon" aria-hidden="true">${getStatusIcon(item.kind)}</span>
@@ -267,8 +266,7 @@ function renderStatuses() {
             </div>
         </article>
     `;
-            },
-        )
+        })
         .join("");
 }
 

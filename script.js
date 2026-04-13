@@ -17,7 +17,7 @@ const appData = {
         {
             kind: "timing",
             theme: "orange",
-            label: "PASEK ROZRZĄDU",
+            label: "NAPĘD ROZRZĄDU",
             mileage: "208,223",
             unit: "k",
             nextMileage: "500k",
@@ -72,9 +72,12 @@ const appData = {
 };
 
 const TODO_STORAGE_KEY = "car-info-todos";
-const HISTORY_STORAGE_KEY = "car-info-history";
-const HISTORY_FIREBASE_SEEDED_KEY = "car-info-history-seeded-v1";
-const PROFILE_STORAGE_KEY = "car-info-profile";
+const LEGACY_HISTORY_STORAGE_KEY = "car-info-history";
+const LEGACY_HISTORY_FIREBASE_SEEDED_KEY = "car-info-history-seeded-v1";
+const LEGACY_PROFILE_STORAGE_KEY = "car-info-profile";
+const HISTORY_STORAGE_PREFIX = "car-info-history-v2";
+const HISTORY_FIREBASE_SEEDED_PREFIX = "car-info-history-seeded-v2";
+const PROFILE_STORAGE_PREFIX = "car-info-profile-v2";
 const FIREBASE_CAR_DOC_ID = "seat-ibiza-2007-1-9-tdi";
 const POLISH_MONTHS = [
     "Sty",
@@ -110,35 +113,44 @@ const historyCount = document.getElementById("history-count");
 const toast = document.getElementById("toast");
 const authStatusText = document.getElementById("auth-status-text");
 const authUserHint = document.getElementById("auth-user-hint");
+const authCardEyebrow = document.getElementById("auth-card-eyebrow");
+const authForm = document.getElementById("auth-form");
+const authEmailInput = document.getElementById("auth-email-input");
+const authPasswordInput = document.getElementById("auth-password-input");
 const authSignInButton = document.getElementById("auth-sign-in-button");
+const authRegisterButton = document.getElementById("auth-register-button");
 const authSignOutButton = document.getElementById("auth-sign-out-button");
-const profileAvatar = document.getElementById("profile-avatar");
-const profileHeroText = document.getElementById("profile-hero-text");
-const profileSyncPill = document.getElementById("profile-sync-pill");
-const profileOwnerChip = document.getElementById("profile-owner-chip");
-const profileStorageChip = document.getElementById("profile-storage-chip");
-const profileBandSync = document.getElementById("profile-band-sync");
-const profileBandContact = document.getElementById("profile-band-contact");
-const profileBandUpdated = document.getElementById("profile-band-updated");
-const profileHistoryCount = document.getElementById("profile-history-count");
-const profileLastService = document.getElementById("profile-last-service");
-const profileTotalCost = document.getElementById("profile-total-cost");
-const profileCarSummary = document.getElementById("profile-car-summary");
-const profileOwnerSummary = document.getElementById("profile-owner-summary");
-const profileWorkshopSummary = document.getElementById(
-    "profile-workshop-summary",
-);
-const profilePhoneSummary = document.getElementById("profile-phone-summary");
-const profileNotePreview = document.getElementById("profile-note-preview");
-const profileSyncCaption = document.getElementById("profile-sync-caption");
+const authModal = document.getElementById("auth-modal");
+const openAuthModalButton = document.getElementById("open-auth-modal-button");
+const closeAuthModalButton = document.getElementById("close-auth-modal-button");
 const profileSettingsBadge = document.getElementById("profile-settings-badge");
+const profileEditorCard = document.getElementById("profile-editor-card");
+const profileVehiclesCard = document.getElementById("profile-vehicles-card");
 const profileForm = document.getElementById("profile-form");
 const profileNameInput = document.getElementById("profile-name");
 const profilePhoneInput = document.getElementById("profile-phone");
-const profileWorkshopInput = document.getElementById("profile-workshop");
-const profileNotesInput = document.getElementById("profile-notes");
 const profileSaveButton = document.getElementById("profile-save-button");
 const profileSaveHint = document.getElementById("profile-save-hint");
+const profileVehiclesCount = document.getElementById("profile-vehicles-count");
+const profileVehiclesTotal = document.getElementById("profile-vehicles-total");
+const profileVehicleSelect = document.getElementById("profile-vehicle-select");
+const profileVehiclesEmpty = document.getElementById("profile-vehicles-empty");
+const profileVehiclesList = document.getElementById("profile-vehicles-list");
+const vehicleFormDropdown = document.getElementById("vehicle-form-dropdown");
+const vehicleForm = document.getElementById("vehicle-form");
+const vehicleTypeInput = document.getElementById("vehicle-type");
+const vehicleNameInput = document.getElementById("vehicle-name");
+const vehicleYearInput = document.getElementById("vehicle-year");
+const vehicleEngineInput = document.getElementById("vehicle-engine");
+const vehicleMileageInput = document.getElementById("vehicle-mileage");
+const vehicleOilMileageInput = document.getElementById("vehicle-oil-mileage");
+const vehicleOilDateInput = document.getElementById("vehicle-oil-date");
+const vehicleTimingMileageInput = document.getElementById(
+    "vehicle-timing-mileage",
+);
+const vehicleTimingDateInput = document.getElementById("vehicle-timing-date");
+const vehicleSubmitButton = document.getElementById("vehicle-submit-button");
+const profileSignOutButton = document.getElementById("profile-sign-out-button");
 const navDashboard = document.getElementById("nav-dashboard");
 const navHistory = document.getElementById("nav-history");
 const navProfile = document.getElementById("nav-profile");
@@ -180,43 +192,206 @@ let hasShownProfileSyncError = false;
 let historyUnsubscribe = null;
 let profileUnsubscribe = null;
 let todos = loadTodos();
-let historyEntries = loadHistoryCache();
 let profileSettings = loadProfileSettings();
+let historyEntries = loadHistoryCache();
 
 function renderHeader() {
-    carName.textContent = appData.car.name;
-    carYear.textContent = appData.car.year;
-    carEngine.textContent = appData.car.engine;
-    document.title = `${appData.car.name} - Car Info`;
+    const selectedVehicle = getSelectedVehicle();
+
+    if (selectedVehicle.isPlaceholder) {
+        carName.textContent = selectedVehicle.name;
+        carYear.textContent = "Profil";
+        carEngine.textContent = "Brak aktywnego pojazdu";
+        document.title = "Car Info";
+        return;
+    }
+
+    carName.textContent = selectedVehicle.name;
+    carYear.textContent = selectedVehicle.year || selectedVehicle.type;
+    carEngine.textContent = selectedVehicle.engine || selectedVehicle.type;
+    document.title = `${selectedVehicle.name} - Car Info`;
 }
 
 function renderStatuses() {
+    const selectedVehicle = getSelectedVehicle();
+
+    if (selectedVehicle.isPlaceholder) {
+        statusGrid.innerHTML = `
+            <article class="status-card status-card--blue">
+                <div class="status-card__top">
+                    <span class="status-card__icon" aria-hidden="true">+</span>
+                    <p class="status-card__label">Brak aktywnego pojazdu</p>
+                </div>
+                <div class="status-card__value">
+                    <span class="status-card__value-number">Dodaj</span>
+                    <span class="status-card__value-unit">auto</span>
+                </div>
+                <div class="status-card__next">
+                    <span class="status-card__next-label">Przejdź do<br>Profilu</span>
+                    <span class="status-card__next-badge">Teraz</span>
+                </div>
+                <div class="status-card__progress" aria-hidden="true">
+                    <div class="status-card__progress-bar" style="width: 14%"></div>
+                </div>
+            </article>
+        `;
+        return;
+    }
+
+    const vehicleMileage = Number.isFinite(selectedVehicle.mileage)
+        ? selectedVehicle.mileage
+        : getDefaultVehicleMileage();
+
     statusGrid.innerHTML = appData.statuses
         .map(
-            (item) => `
+            (item) => {
+                const statusPresentation = getStatusPresentation(
+                    item,
+                    selectedVehicle,
+                    vehicleMileage,
+                );
+
+                return `
         <article class="status-card status-card--${item.theme}">
             <div class="status-card__top">
                 <span class="status-card__icon" aria-hidden="true">${getStatusIcon(item.kind)}</span>
                 <p class="status-card__label">${item.label}</p>
             </div>
             <div class="status-card__value">
-                <span class="status-card__value-number">${item.mileage}</span>
-                <span class="status-card__value-unit">${item.unit}</span>
+                <span class="status-card__value-number">${formatMileage(vehicleMileage)}</span>
+                <span class="status-card__value-unit">km</span>
             </div>
             <div class="status-card__next">
                 <span class="status-card__next-label">Następny<br>przy</span>
-                <span class="status-card__next-badge">${item.nextMileage}</span>
+                <div class="status-card__next-copy">
+                    <span class="status-card__next-badge">${statusPresentation.nextMileageLabel}</span>
+                    ${statusPresentation.nextDateLabel ? `<span class="status-card__next-date">${statusPresentation.nextDateLabel}</span>` : ""}
+                </div>
             </div>
             <div class="status-card__progress" aria-hidden="true">
-                <div class="status-card__progress-bar" style="width: ${item.progress}%"></div>
+                <div class="status-card__progress-bar" style="width: ${statusPresentation.progress}%"></div>
             </div>
         </article>
-    `,
+    `;
+            },
         )
         .join("");
 }
 
+function getStatusPresentation(item, vehicle, currentMileage) {
+    if (item.kind === "oil") {
+        const oilStatus = getOilStatusPresentation(vehicle, currentMileage);
+
+        if (oilStatus) {
+            return oilStatus;
+        }
+    }
+
+    if (item.kind === "timing") {
+        const timingStatus = getTimingStatusPresentation(
+            vehicle,
+            currentMileage,
+        );
+
+        if (timingStatus) {
+            return timingStatus;
+        }
+    }
+
+    return {
+        nextMileageLabel: item.nextMileage,
+        nextDateLabel: "",
+        progress: item.progress,
+    };
+}
+
+function getOilStatusPresentation(vehicle, currentMileage) {
+    return getMaintenanceStatusPresentation({
+        currentMileage,
+        lastMileage: vehicle.oilChangeMileage,
+        lastDate: vehicle.oilChangeDate,
+        intervalMileage: 10000,
+        intervalYears: 1,
+    });
+}
+
+function getTimingStatusPresentation(vehicle, currentMileage) {
+    return getMaintenanceStatusPresentation({
+        currentMileage,
+        lastMileage: vehicle.timingDriveMileage,
+        lastDate: vehicle.timingDriveDate,
+        intervalMileage: 60000,
+        intervalYears: 5,
+    });
+}
+
+function getMaintenanceStatusPresentation({
+    currentMileage,
+    lastMileage,
+    lastDate,
+    intervalMileage,
+    intervalYears,
+}) {
+    const normalizedLastMileage = Number(lastMileage);
+    const normalizedLastDate = normalizeIsoDate(lastDate);
+
+    if (
+        !Number.isFinite(normalizedLastMileage) ||
+        normalizedLastMileage < 0 ||
+        !normalizedLastDate
+    ) {
+        return null;
+    }
+
+    const nextMileage = normalizedLastMileage + intervalMileage;
+    const nextDate = addYearsToIsoDate(normalizedLastDate, intervalYears);
+
+    return {
+        nextMileageLabel: formatMileage(nextMileage),
+        nextDateLabel: formatNumericDate(nextDate),
+        progress: getMileageProgress(
+            currentMileage,
+            normalizedLastMileage,
+            intervalMileage,
+        ),
+    };
+}
+
+function getMileageProgress(currentMileage, lastMileage, intervalMileage) {
+    if (
+        !Number.isFinite(currentMileage) ||
+        !Number.isFinite(lastMileage) ||
+        !Number.isFinite(intervalMileage) ||
+        intervalMileage <= 0
+    ) {
+        return 0;
+    }
+
+    const traveledDistance = Math.max(currentMileage - lastMileage, 0);
+    const progress = (traveledDistance / intervalMileage) * 100;
+
+    return Math.min(Math.max(progress, 0), 100);
+}
+
+function addYearsToIsoDate(value, yearsToAdd) {
+    const [year, month, day] = value.split("-").map(Number);
+    const nextDate = new Date(year + yearsToAdd, month - 1, day);
+    const nextMonth = String(nextDate.getMonth() + 1).padStart(2, "0");
+    const nextDay = String(nextDate.getDate()).padStart(2, "0");
+
+    return `${nextDate.getFullYear()}-${nextMonth}-${nextDay}`;
+}
+
 function renderTimeline() {
+    if (!hasActiveVehicle()) {
+        timeline.innerHTML = `
+            <li class="timeline-item">
+                <p class="timeline-item__description">Dodaj pojazd w Profilu, aby rozpocząć historię serwisową.</p>
+            </li>
+        `;
+        return;
+    }
+
     const previewEntries = historyEntries.slice(0, 3);
 
     if (!previewEntries.length) {
@@ -245,13 +420,22 @@ function renderTimeline() {
 }
 
 function renderHistoryPage() {
-    historyCount.textContent = getCountLabel(historyEntries.length, [
-        "wpis",
-        "wpisy",
-        "wpisów",
-    ]);
-    historyPageEmpty.hidden = historyEntries.length !== 0;
-    historyPageList.hidden = historyEntries.length === 0;
+    const hasVehicle = hasActiveVehicle();
+
+    historyCount.textContent = hasVehicle
+        ? getCountLabel(historyEntries.length, ["wpis", "wpisy", "wpisów"])
+        : "0 wpisów";
+    historyPageEmpty.textContent = hasVehicle
+        ? "Brak wpisów w historii serwisowej."
+        : "Dodaj pojazd w Profilu, aby rozpocząć historię serwisową.";
+    historyPageEmpty.hidden = hasVehicle ? historyEntries.length !== 0 : false;
+    historyPageList.hidden = !hasVehicle || historyEntries.length === 0;
+
+    if (!hasVehicle) {
+        historyPageList.innerHTML = "";
+        renderProfileSummary();
+        return;
+    }
 
     historyPageList.innerHTML = historyEntries
         .map(
@@ -315,126 +499,100 @@ function renderTodos() {
 }
 
 function renderProfileSummary() {
-    if (
-        !profileHistoryCount ||
-        !profileLastService ||
-        !profileTotalCost ||
-        !profileCarSummary ||
-        !profileOwnerSummary ||
-        !profileWorkshopSummary
-    ) {
-        return;
-    }
-
-    const lastEntry = historyEntries[0];
-    const totalCost = historyEntries.reduce(
-        (sum, entry) => sum + (Number(entry.cost) || 0),
-        0,
-    );
     const syncMode = getCurrentProfileSyncMode();
     const syncPresentation = getProfileSyncPresentation(syncMode);
-    const ownerName = getProfileOwnerName();
-    const profilePhone = profileSettings.phone || "Nie podano";
-    const ownerChipText =
-        currentUser?.email ||
-        (ownerName !== "Nie ustawiono" ? ownerName : "Tryb lokalny");
-    const bandContact = currentUser?.email || profileSettings.phone || ownerName;
-    const ownerSummary = currentUser?.email
-        ? `${ownerName} • ${currentUser.email}`
-        : profileSettings.phone
-          ? `${ownerName} • ${profileSettings.phone}`
-          : ownerName;
-    const notePreview =
-        profileSettings.notes ||
-        "Dodaj krótki opis auta, priorytetów serwisowych albo stylu jazdy.";
-    const avatarLabel = getProfileInitials(
-        ownerName !== "Nie ustawiono"
-            ? ownerName
-            : currentUser?.email || appData.car.name,
-    );
+    const selectedVehicle = getSelectedVehicle();
+    const vehicles = getProfileVehicles();
 
-    profileHistoryCount.textContent = String(historyEntries.length);
-    profileLastService.textContent = lastEntry
-        ? formatShortDate(lastEntry.date)
-        : "Brak";
-    profileTotalCost.textContent = `${formatCost(roundCurrency(totalCost))} zł`;
-    profileCarSummary.textContent = `${appData.car.name} • ${appData.car.year} • ${appData.car.engine}`;
-    profileOwnerSummary.textContent = ownerSummary;
-    profileWorkshopSummary.textContent =
-        profileSettings.workshop || "Brak preferowanego warsztatu";
-
-    if (profilePhoneSummary) {
-        profilePhoneSummary.textContent = profilePhone;
-    }
-
-    if (profileAvatar) {
-        profileAvatar.textContent = avatarLabel;
-    }
-
-    if (profileHeroText) {
-        profileHeroText.textContent = syncPresentation.hero;
-    }
-
-    if (profileOwnerChip) {
-        profileOwnerChip.textContent = ownerChipText;
-    }
-
-    if (profileStorageChip) {
-        profileStorageChip.textContent = syncPresentation.storage;
-        profileStorageChip.dataset.syncMode = syncMode;
-    }
-
-    if (profileBandSync) {
-        profileBandSync.textContent = syncPresentation.badge;
-    }
-
-    if (profileBandContact) {
-        profileBandContact.textContent = bandContact;
-    }
-
-    if (profileBandUpdated) {
-        profileBandUpdated.textContent = formatProfileUpdatedAt(
-            profileSettings.updatedAt,
-        );
-    }
-
-    if (profileSyncPill) {
-        profileSyncPill.textContent = syncPresentation.pill;
-        profileSyncPill.dataset.syncMode = syncMode;
-    }
+    renderVehicleManager(vehicles, selectedVehicle.id);
 
     if (profileSettingsBadge) {
         profileSettingsBadge.textContent = syncPresentation.badge;
         profileSettingsBadge.dataset.syncMode = syncMode;
     }
 
-    if (profileSyncCaption) {
-        profileSyncCaption.textContent = syncPresentation.caption;
-        profileSyncCaption.dataset.syncMode = syncMode;
-    }
-
-    if (profileNotePreview) {
-        profileNotePreview.textContent = notePreview;
-    }
-
     setProfileFormBusy(profileBusy);
 }
 
-function fillProfileForm() {
+function renderVehicleManager(vehicles, selectedVehicleId) {
     if (
-        !profileNameInput ||
-        !profilePhoneInput ||
-        !profileWorkshopInput ||
-        !profileNotesInput
+        !profileVehiclesCount ||
+        !profileVehiclesTotal ||
+        !profileVehicleSelect ||
+        !profileVehiclesEmpty ||
+        !profileVehiclesList
     ) {
         return;
     }
 
-    profileNameInput.value =
-        profileSettings.name || currentUser?.displayName || "";
+    const vehicleCountLabel = getCountLabel(vehicles.length, [
+        "pojazd",
+        "pojazdy",
+        "pojazdów",
+    ]);
+
+    profileVehiclesCount.textContent = vehicleCountLabel;
+    profileVehiclesTotal.textContent = vehicles.length
+        ? `Posiadasz ${vehicleCountLabel}.`
+        : "Nie masz jeszcze dodanych pojazdów.";
+    profileVehiclesEmpty.hidden = vehicles.length !== 0;
+    profileVehiclesList.hidden = vehicles.length === 0;
+    profileVehicleSelect.disabled = vehicles.length === 0;
+    profileVehicleSelect.innerHTML = vehicles.length
+        ? vehicles
+              .map(
+                  (vehicle) => `
+                <option value="${escapeHtml(vehicle.id)}" ${
+                    vehicle.id === selectedVehicleId ? "selected" : ""
+                }>${escapeHtml(vehicle.name)}${
+                    vehicle.year ? ` • ${escapeHtml(vehicle.year)}` : ""
+                }</option>
+            `,
+              )
+              .join("")
+        : '<option value="">Brak pojazdów</option>';
+
+    profileVehiclesList.innerHTML = vehicles
+        .map(
+            (vehicle) => `
+                <li>
+                    <article class="vehicle-item${
+                        vehicle.id === selectedVehicleId
+                            ? " vehicle-item--active"
+                            : ""
+                    }">
+                        <div class="vehicle-item__top">
+                            <div class="vehicle-item__main">
+                                <p class="vehicle-item__eyebrow">${escapeHtml(vehicle.type)}</p>
+                                <h3 class="vehicle-item__title">${escapeHtml(vehicle.name)}</h3>
+                                <p class="vehicle-item__meta">${escapeHtml(formatVehicleMeta(vehicle))}</p>
+                                <p class="vehicle-item__service">${escapeHtml(formatVehicleServiceLine("Olej", vehicle.oilChangeMileage, vehicle.oilChangeDate))}</p>
+                                <p class="vehicle-item__service">${escapeHtml(formatVehicleServiceLine("Rozrząd", vehicle.timingDriveMileage, vehicle.timingDriveDate))}</p>
+                            </div>
+                            <span class="price-badge">${formatMileage(vehicle.mileage)}<br>km</span>
+                        </div>
+                        <div class="vehicle-item__actions">
+                            <button class="vehicle-action vehicle-action--select" type="button" data-vehicle-action="select" data-vehicle-id="${escapeHtml(vehicle.id)}">
+                                ${vehicle.id === selectedVehicleId ? "Aktywne" : "Wybierz"}
+                            </button>
+                            <button class="vehicle-action vehicle-action--delete" type="button" data-vehicle-action="delete" data-vehicle-id="${escapeHtml(vehicle.id)}">
+                                Usuń
+                            </button>
+                        </div>
+                    </article>
+                </li>
+            `,
+        )
+        .join("");
+}
+
+function fillProfileForm() {
+    if (!profileNameInput || !profilePhoneInput) {
+        return;
+    }
+
+    profileNameInput.value = profileSettings.name || getAuthUserLabel() || "";
     profilePhoneInput.value = profileSettings.phone;
-    profileWorkshopInput.value = profileSettings.workshop;
-    profileNotesInput.value = profileSettings.notes;
 }
 
 function setProfileFormBusy(isBusy) {
@@ -466,14 +624,44 @@ function showToast(message) {
     }, 2600);
 }
 
+function openAuthModal() {
+    if (!authModal) {
+        return;
+    }
+
+    authModal.hidden = false;
+    document.body.classList.add("auth-modal-open");
+
+    window.requestAnimationFrame(() => {
+        authEmailInput?.focus();
+    });
+}
+
+function closeAuthModal() {
+    if (!authModal) {
+        return;
+    }
+
+    authModal.hidden = true;
+    document.body.classList.remove("auth-modal-open");
+    clearAuthPasswordField();
+}
+
 function updateAuthUi() {
     const firebaseState = window.carInfoFirebase;
     const authAvailable = Boolean(firebaseState && firebaseState.auth);
+    const isAuthenticated = Boolean(currentUser);
+
+    updateProfileViewState({
+        isAuthenticated,
+        authAvailable,
+    });
 
     if (
         !authStatusText ||
         !authUserHint ||
         !authSignInButton ||
+        !authRegisterButton ||
         !authSignOutButton
     ) {
         return;
@@ -483,41 +671,100 @@ function updateAuthUi() {
         authStatusText.textContent =
             "Firebase Auth nie jest dostępny. Profil i historia działają tylko lokalnie.";
         authUserHint.textContent = "";
-        authSignInButton.hidden = true;
+        if (authForm) {
+            authForm.hidden = true;
+        }
         authSignOutButton.hidden = true;
         return;
     }
 
     authSignInButton.disabled = authBusy;
+    authRegisterButton.disabled = authBusy;
     authSignOutButton.disabled = authBusy;
+    if (authEmailInput) {
+        authEmailInput.disabled = authBusy || Boolean(currentUser);
+    }
+    if (authPasswordInput) {
+        authPasswordInput.disabled = authBusy || Boolean(currentUser);
+    }
 
     if (!authReady) {
         authStatusText.textContent = "Sprawdzanie sesji użytkownika...";
         authUserHint.textContent = "";
-        authSignInButton.hidden = false;
+        if (authForm) {
+            authForm.hidden = false;
+        }
+        if (authCardEyebrow) {
+            authCardEyebrow.textContent = "Logowanie";
+        }
         authSignInButton.textContent = "Ładowanie...";
+        authRegisterButton.textContent = "Tworzenie...";
         authSignOutButton.hidden = true;
         return;
     }
 
-    if (currentUser) {
+    if (isAuthenticated) {
+        closeAuthModal();
         authStatusText.textContent =
             "Profil i historia serwisowa są synchronizowane z Firebase dla zalogowanego użytkownika.";
         authUserHint.textContent = currentUser.email
             ? `Zalogowano jako ${currentUser.email}`
             : `Zalogowano. UID: ${currentUser.uid}`;
-        authSignInButton.hidden = true;
-        authSignOutButton.hidden = false;
+        if (authForm) {
+            authForm.hidden = true;
+        }
+        if (authCardEyebrow) {
+            authCardEyebrow.textContent = "Konto";
+        }
+        authSignOutButton.hidden = true;
         return;
     }
 
     authStatusText.textContent =
-        "Zaloguj się kontem Google, aby zsynchronizować profil i historię serwisową w Firebase.";
+        "Zaloguj się, aby odblokować pełny Profil i synchronizację danych w Firebase.";
     authUserHint.textContent =
-        "Dane profilu mogą być zapisane lokalnie jako szkic, a po logowaniu trafią do Firestore.";
-    authSignInButton.hidden = false;
-    authSignInButton.textContent = authBusy ? "Logowanie..." : "Zaloguj Google";
+        "Po zalogowaniu zobaczysz dane właściciela, ustawienia auta i synchronizację historii serwisowej.";
+    if (authForm) {
+        authForm.hidden = false;
+    }
+    if (authCardEyebrow) {
+        authCardEyebrow.textContent = "Logowanie";
+    }
+    authSignInButton.textContent = authBusy ? "Logowanie..." : "Zaloguj";
+    authRegisterButton.textContent = authBusy ? "Tworzenie..." : "Utwórz konto";
     authSignOutButton.hidden = true;
+}
+
+function updateProfileViewState({ isAuthenticated, authAvailable }) {
+    profileView?.classList.toggle("profile-view--guest", !isAuthenticated);
+    profileView?.classList.toggle(
+        "profile-view--authenticated",
+        isAuthenticated,
+    );
+
+    if (profileEditorCard) {
+        profileEditorCard.hidden = false;
+    }
+
+    if (profileVehiclesCard) {
+        profileVehiclesCard.hidden = false;
+    }
+
+    if (profileSignOutButton) {
+        profileSignOutButton.hidden = !isAuthenticated;
+    }
+
+    if (openAuthModalButton) {
+        openAuthModalButton.hidden = isAuthenticated;
+        openAuthModalButton.disabled = !authAvailable;
+        openAuthModalButton.textContent = authAvailable
+            ? "Zaloguj do Firebase"
+            : "Firebase niedostępny";
+    }
+
+    if (!authAvailable && authCardEyebrow) {
+        authCardEyebrow.textContent = "Firebase Auth";
+    }
 }
 
 function setupPlaceholderActions() {
@@ -549,16 +796,37 @@ function setupNavigation() {
 }
 
 function setupAuthActions() {
-    if (!authSignInButton || !authSignOutButton) {
-        return;
-    }
-
-    authSignInButton.addEventListener("click", async () => {
-        await signInWithGoogle();
+    openAuthModalButton?.addEventListener("click", () => {
+        openAuthModal();
     });
 
-    authSignOutButton.addEventListener("click", async () => {
+    closeAuthModalButton?.addEventListener("click", () => {
+        closeAuthModal();
+    });
+
+    document.querySelectorAll("[data-close-auth-modal]").forEach((button) => {
+        button.addEventListener("click", () => {
+            closeAuthModal();
+        });
+    });
+
+    authForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await signInWithEmailPassword();
+    });
+
+    authRegisterButton?.addEventListener("click", async () => {
+        await registerWithEmailPassword();
+    });
+
+    authSignOutButton?.addEventListener("click", async () => {
         await signOutFromFirebase();
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && authModal && !authModal.hidden) {
+            closeAuthModal();
+        }
     });
 }
 
@@ -577,14 +845,15 @@ function setupFirebaseAuth() {
 
     firebaseState.auth.onAuthStateChanged((user) => {
         currentUser = user;
+        profileSettings = loadProfileSettings();
+        historyEntries = loadHistoryCache();
         authReady = true;
         authBusy = false;
         profileBusy = false;
         hasShownHistorySyncError = false;
         hasShownProfileSyncError = false;
         updateAuthUi();
-        fillProfileForm();
-        renderProfileSummary();
+        refreshVehicleContext();
         restartHistorySync();
         restartProfileSync();
     });
@@ -599,10 +868,9 @@ function setupProfileActions() {
         event.preventDefault();
 
         const nextProfileSettings = {
+            ...profileSettings,
             name: normalizeText(profileNameInput?.value || "", 60),
             phone: normalizeText(profilePhoneInput?.value || "", 30),
-            workshop: normalizeText(profileWorkshopInput?.value || "", 80),
-            notes: normalizeText(profileNotesInput?.value || "", 220),
             updatedAt: Date.now(),
         };
 
@@ -620,8 +888,161 @@ function setupProfileActions() {
     });
 }
 
-async function signInWithGoogle() {
+function setupVehicleActions() {
+    profileVehicleSelect?.addEventListener("change", async (event) => {
+        await changeSelectedVehicle(event.target.value);
+    });
+
+    profileVehiclesList?.addEventListener("click", async (event) => {
+        const actionButton = event.target.closest("[data-vehicle-action]");
+
+        if (!actionButton) {
+            return;
+        }
+
+        const vehicleId = actionButton.dataset.vehicleId;
+
+        if (!vehicleId) {
+            return;
+        }
+
+        if (actionButton.dataset.vehicleAction === "select") {
+            await changeSelectedVehicle(vehicleId);
+            return;
+        }
+
+        await deleteVehicleProfile(vehicleId);
+    });
+
+    vehicleForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await addVehicleProfile();
+    });
+
+    profileSignOutButton?.addEventListener("click", async () => {
+        await signOutFromFirebase();
+        setActiveView("profile");
+    });
+}
+
+async function changeSelectedVehicle(vehicleId) {
+    const vehicles = getProfileVehicles();
+
+    if (
+        !vehicleId ||
+        !vehicles.some((vehicle) => vehicle.id === vehicleId) ||
+        vehicleId === profileSettings.selectedVehicleId
+    ) {
+        return;
+    }
+
+    profileSettings = normalizeProfileSettings({
+        ...profileSettings,
+        selectedVehicleId: vehicleId,
+        updatedAt: Date.now(),
+    });
+    historyEntries = loadHistoryCache();
+    refreshVehicleContext();
+
+    const savedTo = await persistProfileSettings(profileSettings);
+    restartHistorySync();
+    showToast(
+        savedTo === "firebase"
+            ? "Zmieniono aktywny pojazd."
+            : "Zmieniono aktywny pojazd lokalnie.",
+    );
+}
+
+async function addVehicleProfile() {
+    const vehicleDraft = readVehicleFormValues();
+
+    if (!vehicleDraft) {
+        return;
+    }
+
+    const vehicles = getProfileVehicles();
+    const vehicleId = ensureUniqueVehicleId(
+        vehicles,
+        createVehicleProfileId(vehicleDraft.name, vehicleDraft.year),
+    );
+    const vehicle = normalizeVehicleProfile({
+        ...vehicleDraft,
+        id: vehicleId,
+    });
+
+    if (!vehicle) {
+        showToast("Nie udało się dodać pojazdu.");
+        return;
+    }
+
+    profileSettings = normalizeProfileSettings({
+        ...profileSettings,
+        vehicles: [...vehicles, vehicle],
+        selectedVehicleId: vehicle.id,
+        updatedAt: Date.now(),
+    });
+    historyEntries = loadHistoryCache();
+    refreshVehicleContext();
+
+    const savedTo = await persistProfileSettings(profileSettings);
+    restartHistorySync();
+    vehicleForm.reset();
+    if (vehicleTypeInput) {
+        vehicleTypeInput.value = "Auto";
+    }
+    if (vehicleFormDropdown) {
+        vehicleFormDropdown.open = false;
+    }
+    showToast(
+        savedTo === "firebase"
+            ? "Dodano nowy pojazd do profilu."
+            : "Dodano pojazd lokalnie.",
+    );
+}
+
+async function deleteVehicleProfile(vehicleId) {
+    const vehicles = getProfileVehicles();
+    const vehicle = vehicles.find((item) => item.id === vehicleId);
+
+    if (!vehicle) {
+        return;
+    }
+
+    if (!window.confirm(`Usunąć profil pojazdu "${vehicle.name}"?`)) {
+        return;
+    }
+
+    const remainingVehicles = vehicles.filter((item) => item.id !== vehicleId);
+    const nextSelectedVehicleId =
+        profileSettings.selectedVehicleId === vehicleId
+            ? remainingVehicles[0]?.id || ""
+            : profileSettings.selectedVehicleId;
+
+    profileSettings = normalizeProfileSettings({
+        ...profileSettings,
+        vehicles: remainingVehicles,
+        selectedVehicleId: nextSelectedVehicleId,
+        updatedAt: Date.now(),
+    });
+    historyEntries = loadHistoryCache();
+    refreshVehicleContext();
+
+    const savedTo = await persistProfileSettings(profileSettings);
+    restartHistorySync();
+    showToast(
+        savedTo === "firebase"
+            ? remainingVehicles.length
+                ? "Usunięto profil pojazdu."
+                : "Usunięto ostatni pojazd z profilu."
+            : remainingVehicles.length
+              ? "Usunięto pojazd lokalnie."
+              : "Usunięto ostatni pojazd lokalnie.",
+    );
+}
+
+async function signInWithEmailPassword() {
     const firebaseState = window.carInfoFirebase;
+    const credentials = getAuthCredentials();
 
     if (
         !firebaseState ||
@@ -632,16 +1053,60 @@ async function signInWithGoogle() {
         return false;
     }
 
+    if (!credentials) {
+        return false;
+    }
+
     authBusy = true;
     updateAuthUi();
 
     try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: "select_account" });
-        await firebaseState.auth.signInWithPopup(provider);
+        await firebaseState.auth.signInWithEmailAndPassword(
+            credentials.email,
+            credentials.password,
+        );
+        clearAuthPasswordField();
         return true;
     } catch (error) {
-        console.error("Unable to sign in with Google.", error);
+        console.error("Unable to sign in with email and password.", error);
+        showToast(getFirebaseAuthErrorMessage(error));
+        return false;
+    } finally {
+        authBusy = false;
+        updateAuthUi();
+    }
+}
+
+async function registerWithEmailPassword() {
+    const firebaseState = window.carInfoFirebase;
+    const credentials = getAuthCredentials();
+
+    if (
+        !firebaseState ||
+        !firebaseState.auth ||
+        typeof firebase.auth !== "function"
+    ) {
+        showToast("Firebase Auth nie jest dostępny.");
+        return false;
+    }
+
+    if (!credentials) {
+        return false;
+    }
+
+    authBusy = true;
+    updateAuthUi();
+
+    try {
+        await firebaseState.auth.createUserWithEmailAndPassword(
+            credentials.email,
+            credentials.password,
+        );
+        clearAuthPasswordField();
+        showToast("Konto email/hasło zostało utworzone.");
+        return true;
+    } catch (error) {
+        console.error("Unable to create email and password account.", error);
         showToast(getFirebaseAuthErrorMessage(error));
         return false;
     } finally {
@@ -679,13 +1144,22 @@ function requireAuthenticatedHistoryAccess() {
         return true;
     }
 
-    if (currentUser) {
+    if (currentUser && hasActiveVehicle()) {
         return true;
     }
 
-    showToast("Zaloguj się Google, aby edytować historię w Firebase.");
-    setActiveView("profile");
-    authSignInButton?.focus();
+    if (currentUser && !hasActiveVehicle()) {
+        showToast("Dodaj pojazd w Profilu, aby prowadzić historię serwisową.");
+        setActiveView("profile");
+        if (vehicleFormDropdown) {
+            vehicleFormDropdown.open = true;
+        }
+        vehicleNameInput?.focus();
+        return false;
+    }
+
+    showToast("Zaloguj się do Firebase, aby edytować historię.");
+    openAuthModal();
     return false;
 }
 
@@ -727,6 +1201,19 @@ function restartProfileSync() {
     profileSyncMode = "syncing";
     renderProfileSummary();
     syncProfileWithFirebase();
+}
+
+function refreshVehicleContext({ restartHistory = false } = {}) {
+    historyEntries = loadHistoryCache();
+    renderHeader();
+    renderStatuses();
+    renderTimeline();
+    renderHistoryPage();
+    fillProfileForm();
+
+    if (restartHistory) {
+        restartHistorySync();
+    }
 }
 
 function setActiveView(viewName) {
@@ -1048,41 +1535,52 @@ function focusCurrentHistoryArea() {
 }
 
 function loadHistoryCache() {
+    const selectedVehicleId = getSelectedVehicleId();
+
+    if (!selectedVehicleId) {
+        return [];
+    }
+
     const fallbackHistory = appData.history
         .map((entry) => normalizeHistoryEntry(entry))
         .filter(Boolean);
+    const fallbackEntries =
+        shouldUseDemoData() && selectedVehicleId === FIREBASE_CAR_DOC_ID
+            ? fallbackHistory
+            : [];
 
     try {
-        const storedHistory = window.localStorage.getItem(HISTORY_STORAGE_KEY);
-
-        if (!storedHistory) {
-            return sortHistoryEntries(fallbackHistory);
-        }
-
-        const parsedHistory = JSON.parse(storedHistory);
-
-        if (!Array.isArray(parsedHistory)) {
-            return sortHistoryEntries(fallbackHistory);
-        }
-
-        const normalizedHistory = parsedHistory
+        const historyState = getHistoryStorageState();
+        const vehicleHistory = Array.isArray(historyState[selectedVehicleId])
+            ? historyState[selectedVehicleId]
+            : [];
+        const normalizedHistory = vehicleHistory
             .map((entry) => normalizeHistoryEntry(entry))
             .filter(Boolean);
 
         return normalizedHistory.length
             ? sortHistoryEntries(normalizedHistory)
-            : sortHistoryEntries(fallbackHistory);
+            : sortHistoryEntries(fallbackEntries);
     } catch (error) {
         console.error("Unable to load service history cache.", error);
-        return sortHistoryEntries(fallbackHistory);
+        return sortHistoryEntries(fallbackEntries);
     }
 }
 
 function saveHistoryCache() {
     try {
+        const selectedVehicleId = getSelectedVehicleId();
+
+        if (!selectedVehicleId) {
+            return;
+        }
+
+        const historyState = getHistoryStorageState();
+
+        historyState[selectedVehicleId] = historyEntries;
         window.localStorage.setItem(
-            HISTORY_STORAGE_KEY,
-            JSON.stringify(historyEntries),
+            getHistoryStorageKey(),
+            JSON.stringify(historyState),
         );
     } catch (error) {
         console.error("Unable to save service history cache.", error);
@@ -1091,14 +1589,15 @@ function saveHistoryCache() {
 
 function getHistoryCollection() {
     const firebaseState = window.carInfoFirebase;
+    const vehicleId = getSelectedVehicleId();
 
-    if (!firebaseState || !firebaseState.db) {
+    if (!firebaseState || !firebaseState.db || !vehicleId) {
         return null;
     }
 
     return firebaseState.db
         .collection("cars")
-        .doc(FIREBASE_CAR_DOC_ID)
+        .doc(vehicleId)
         .collection("serviceHistory");
 }
 
@@ -1142,10 +1641,9 @@ function syncProfileWithFirebase() {
 
             profileSettings = normalizeProfileSettings(documentSnapshot.data());
             saveProfileSettings();
-            fillProfileForm();
             hasShownProfileSyncError = false;
             profileSyncMode = "firebase";
-            renderProfileSummary();
+            refreshVehicleContext({ restartHistory: true });
         },
         (error) => {
             console.error(
@@ -1168,8 +1666,7 @@ function syncProfileWithFirebase() {
 async function persistProfileSettings(profile) {
     profileSettings = normalizeProfileSettings(profile);
     saveProfileSettings();
-    fillProfileForm();
-    renderProfileSummary();
+    refreshVehicleContext();
 
     const profileDocument = getProfileDocument();
     const firebaseState = window.carInfoFirebase;
@@ -1220,6 +1717,7 @@ async function writeProfileSettingsToFirebase(profile) {
 
 function syncHistoryWithFirebase() {
     const historyCollection = getHistoryCollection();
+    const selectedVehicleId = getSelectedVehicleId();
 
     if (!historyCollection || !currentUser) {
         return;
@@ -1228,9 +1726,7 @@ function syncHistoryWithFirebase() {
     historyUnsubscribe = historyCollection.onSnapshot(
         async (snapshot) => {
             if (snapshot.empty) {
-                const alreadySeeded =
-                    window.localStorage.getItem(HISTORY_FIREBASE_SEEDED_KEY) ===
-                    "1";
+                const alreadySeeded = isHistorySeeded(selectedVehicleId);
 
                 if (!alreadySeeded && historyEntries.length) {
                     const seeded = await seedHistoryInFirebase(
@@ -1239,10 +1735,7 @@ function syncHistoryWithFirebase() {
                     );
 
                     if (seeded) {
-                        window.localStorage.setItem(
-                            HISTORY_FIREBASE_SEEDED_KEY,
-                            "1",
-                        );
+                        markHistorySeeded(selectedVehicleId);
                     }
 
                     return;
@@ -1255,7 +1748,7 @@ function syncHistoryWithFirebase() {
                 return;
             }
 
-            window.localStorage.setItem(HISTORY_FIREBASE_SEEDED_KEY, "1");
+            markHistorySeeded(selectedVehicleId);
 
             const remoteEntries = snapshot.docs
                 .map((documentSnapshot) =>
@@ -1312,6 +1805,7 @@ async function seedHistoryInFirebase(historyCollection, entries) {
 async function saveHistoryEntry(entry) {
     const normalizedEntry = normalizeHistoryEntry(entry);
     const historyCollection = getHistoryCollection();
+    const selectedVehicleId = getSelectedVehicleId();
 
     if (!normalizedEntry) {
         return "local";
@@ -1322,7 +1816,7 @@ async function saveHistoryEntry(entry) {
             await historyCollection
                 .doc(normalizedEntry.id)
                 .set(serializeHistoryEntry(normalizedEntry));
-            window.localStorage.setItem(HISTORY_FIREBASE_SEEDED_KEY, "1");
+            markHistorySeeded(selectedVehicleId);
             mergeHistoryEntry(normalizedEntry);
             saveHistoryCache();
             return "firebase";
@@ -1379,6 +1873,7 @@ function serializeHistoryEntry(entry) {
         title: entry.title,
         description: entry.description,
         cost: entry.cost,
+        ownerUid: currentUser?.uid || null,
         createdAt: entry.createdAt || Date.now(),
         updatedAt: entry.updatedAt || Date.now(),
     };
@@ -1479,7 +1974,10 @@ function loadProfileSettings() {
     const defaultProfile = createEmptyProfileSettings();
 
     try {
-        const storedProfile = window.localStorage.getItem(PROFILE_STORAGE_KEY);
+        const storedProfile = readScopedStorageValue(
+            getProfileStorageKey(),
+            LEGACY_PROFILE_STORAGE_KEY,
+        );
 
         if (!storedProfile) {
             return defaultProfile;
@@ -1501,7 +1999,7 @@ function loadProfileSettings() {
 function saveProfileSettings() {
     try {
         window.localStorage.setItem(
-            PROFILE_STORAGE_KEY,
+            getProfileStorageKey(),
             JSON.stringify(normalizeProfileSettings(profileSettings)),
         );
     } catch (error) {
@@ -1551,30 +2049,193 @@ function getTodoSummary(openCount, totalCount) {
 
 function getFirebaseAuthErrorMessage(error) {
     if (!error || typeof error.code !== "string") {
-        return "Logowanie Google nie powiodło się.";
+        return "Logowanie email/hasło nie powiodło się.";
     }
 
     if (error.code === "auth/operation-not-allowed") {
-        return "Włącz Google Sign-In w Firebase Authentication.";
+        return "Włącz Email/Password w Firebase Authentication.";
     }
 
-    if (error.code === "auth/unauthorized-domain") {
-        return "Dodaj bieżącą domenę do Authorized domains w Firebase Auth.";
+    if (error.code === "auth/invalid-email") {
+        return "Podaj poprawny adres email.";
     }
 
-    if (error.code === "auth/popup-closed-by-user") {
-        return "Logowanie zostało przerwane.";
+    if (error.code === "auth/missing-password") {
+        return "Wpisz hasło.";
     }
 
-    return "Logowanie Google nie powiodło się.";
+    if (error.code === "auth/weak-password") {
+        return "Hasło musi mieć co najmniej 6 znaków.";
+    }
+
+    if (error.code === "auth/email-already-in-use") {
+        return "To konto już istnieje. Zaloguj się tym emailem.";
+    }
+
+    if (
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password" ||
+        error.code === "auth/invalid-credential"
+    ) {
+        return "Nieprawidłowy email lub hasło.";
+    }
+
+    if (error.code === "auth/too-many-requests") {
+        return "Zbyt wiele prób logowania. Spróbuj ponownie później.";
+    }
+
+    return "Logowanie email/hasło nie powiodło się.";
+}
+
+function getAuthCredentials() {
+    const email = normalizeText(authEmailInput?.value || "", 120).toLowerCase();
+    const password = authPasswordInput?.value || "";
+
+    if (!email) {
+        showToast("Wpisz adres email.");
+        authEmailInput?.focus();
+        return null;
+    }
+
+    if (!password) {
+        showToast("Wpisz hasło.");
+        authPasswordInput?.focus();
+        return null;
+    }
+
+    if (password.length < 6) {
+        showToast("Hasło musi mieć co najmniej 6 znaków.");
+        authPasswordInput?.focus();
+        return null;
+    }
+
+    return { email, password };
+}
+
+function clearAuthPasswordField() {
+    if (authPasswordInput) {
+        authPasswordInput.value = "";
+    }
+}
+
+function getCurrentStorageScope() {
+    return currentUser?.uid ? `user:${currentUser.uid}` : "guest";
+}
+
+function getScopedStorageKey(prefix) {
+    return `${prefix}:${getCurrentStorageScope()}`;
+}
+
+function getProfileStorageKey() {
+    return getScopedStorageKey(PROFILE_STORAGE_PREFIX);
+}
+
+function getHistoryStorageKey() {
+    return getScopedStorageKey(HISTORY_STORAGE_PREFIX);
+}
+
+function getHistorySeedStorageKey() {
+    return getScopedStorageKey(HISTORY_FIREBASE_SEEDED_PREFIX);
+}
+
+function readScopedStorageValue(scopedKey, legacyKey) {
+    const scopedValue = window.localStorage.getItem(scopedKey);
+
+    if (scopedValue !== null) {
+        return scopedValue;
+    }
+
+    if (!currentUser && legacyKey) {
+        return window.localStorage.getItem(legacyKey);
+    }
+
+    return null;
+}
+
+function getHistoryStorageState() {
+    try {
+        const storedHistory = readScopedStorageValue(
+            getHistoryStorageKey(),
+            LEGACY_HISTORY_STORAGE_KEY,
+        );
+
+        if (!storedHistory) {
+            return {};
+        }
+
+        const parsedHistory = JSON.parse(storedHistory);
+
+        if (Array.isArray(parsedHistory)) {
+            return {
+                [FIREBASE_CAR_DOC_ID]: parsedHistory,
+            };
+        }
+
+        return parsedHistory && typeof parsedHistory === "object"
+            ? parsedHistory
+            : {};
+    } catch (error) {
+        console.error("Unable to read service history storage state.", error);
+        return {};
+    }
+}
+
+function getHistorySeedState() {
+    try {
+        const storedSeedState = readScopedStorageValue(
+            getHistorySeedStorageKey(),
+            LEGACY_HISTORY_FIREBASE_SEEDED_KEY,
+        );
+
+        if (!storedSeedState) {
+            return {};
+        }
+
+        if (storedSeedState === "1") {
+            return {
+                [FIREBASE_CAR_DOC_ID]: true,
+            };
+        }
+
+        const parsedSeedState = JSON.parse(storedSeedState);
+
+        return parsedSeedState && typeof parsedSeedState === "object"
+            ? parsedSeedState
+            : {};
+    } catch (error) {
+        console.error("Unable to read Firebase seed state.", error);
+        return {};
+    }
+}
+
+function isHistorySeeded(vehicleId) {
+    return Boolean(getHistorySeedState()[vehicleId]);
+}
+
+function markHistorySeeded(vehicleId) {
+    if (!vehicleId) {
+        return;
+    }
+
+    const seedState = getHistorySeedState();
+
+    seedState[vehicleId] = true;
+    window.localStorage.setItem(
+        getHistorySeedStorageKey(),
+        JSON.stringify(seedState),
+    );
 }
 
 function createEmptyProfileSettings() {
+    const defaultVehicles = shouldUseDemoData()
+        ? [createDefaultVehicleProfile()]
+        : [];
+
     return {
         name: "",
         phone: "",
-        workshop: "",
-        notes: "",
+        vehicles: defaultVehicles,
+        selectedVehicleId: defaultVehicles[0]?.id || "",
         updatedAt: 0,
     };
 }
@@ -1587,12 +2248,26 @@ function normalizeProfileSettings(profile) {
     }
 
     const updatedAt = Number(profile.updatedAt);
+    const fallbackVehicles = emptyProfile.vehicles;
+    const vehicles = Array.isArray(profile.vehicles)
+        ? profile.vehicles
+              .map((vehicle) => normalizeVehicleProfile(vehicle))
+              .filter(Boolean)
+        : fallbackVehicles;
+    const normalizedVehicles = vehicles.length ? vehicles : fallbackVehicles;
+    const selectedVehicleId =
+        typeof profile.selectedVehicleId === "string" &&
+        normalizedVehicles.some(
+            (vehicle) => vehicle.id === profile.selectedVehicleId,
+        )
+            ? profile.selectedVehicleId
+            : normalizedVehicles[0]?.id || "";
 
     return {
         name: normalizeText(profile.name, 60),
         phone: normalizeText(profile.phone, 30),
-        workshop: normalizeText(profile.workshop, 80),
-        notes: normalizeText(profile.notes, 220),
+        vehicles: normalizedVehicles,
+        selectedVehicleId,
         updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0,
     };
 }
@@ -1603,8 +2278,8 @@ function serializeProfileSettings(profile) {
     return {
         name: normalizedProfile.name,
         phone: normalizedProfile.phone,
-        workshop: normalizedProfile.workshop,
-        notes: normalizedProfile.notes,
+        vehicles: normalizedProfile.vehicles.map((vehicle) => ({ ...vehicle })),
+        selectedVehicleId: normalizedProfile.selectedVehicleId,
         updatedAt: Date.now(),
     };
 }
@@ -1615,9 +2290,261 @@ function hasProfileContent(profile) {
     return Boolean(
         normalizedProfile.name ||
         normalizedProfile.phone ||
-        normalizedProfile.workshop ||
-        normalizedProfile.notes,
+        normalizedProfile.vehicles.length,
     );
+}
+
+function createDefaultVehicleProfile() {
+    return {
+        id: FIREBASE_CAR_DOC_ID,
+        type: "Auto",
+        name: appData.car.name,
+        year: appData.car.year,
+        engine: appData.car.engine,
+        mileage: getDefaultVehicleMileage(),
+        oilChangeMileage: 198500,
+        oilChangeDate: "2023-10-12",
+        timingDriveMileage: 165000,
+        timingDriveDate: "2023-01-22",
+    };
+}
+
+function getDefaultVehicleMileage() {
+    return (
+        Number(
+            String(appData.statuses[0]?.mileage || "0").replace(/[^\d]/g, ""),
+        ) || 0
+    );
+}
+
+function shouldUseDemoData() {
+    return !currentUser;
+}
+
+function createEmptyVehiclePlaceholder() {
+    return {
+        id: "",
+        type: "Profil",
+        name: "Dodaj pierwszy pojazd",
+        year: "",
+        engine: "Brak aktywnego pojazdu",
+        mileage: 0,
+        isPlaceholder: true,
+    };
+}
+
+function normalizeVehicleProfile(vehicle) {
+    if (!vehicle || typeof vehicle !== "object") {
+        return null;
+    }
+
+    const type =
+        normalizeText(vehicle.type || "Auto", 20) === "Motocykl"
+            ? "Motocykl"
+            : "Auto";
+    const name = normalizeText(vehicle.name, 60);
+    const year = normalizeText(vehicle.year, 4);
+    const engine = normalizeText(vehicle.engine, 40);
+    const mileage = Number(vehicle.mileage);
+    const oilChangeMileage = Number(vehicle.oilChangeMileage);
+    const timingDriveMileage = Number(vehicle.timingDriveMileage);
+    const oilChangeDate = normalizeIsoDate(vehicle.oilChangeDate);
+    const timingDriveDate = normalizeIsoDate(vehicle.timingDriveDate);
+
+    if (!name) {
+        return null;
+    }
+
+    return {
+        id: sanitizeVehicleId(vehicle.id || createVehicleProfileId(name, year)),
+        type,
+        name,
+        year,
+        engine,
+        mileage:
+            Number.isFinite(mileage) && mileage >= 0 ? Math.round(mileage) : 0,
+        oilChangeMileage:
+            Number.isFinite(oilChangeMileage) && oilChangeMileage >= 0
+                ? Math.round(oilChangeMileage)
+                : null,
+        oilChangeDate,
+        timingDriveMileage:
+            Number.isFinite(timingDriveMileage) && timingDriveMileage >= 0
+                ? Math.round(timingDriveMileage)
+                : null,
+        timingDriveDate,
+    };
+}
+
+function sanitizeVehicleId(value) {
+    const slug = String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 64);
+
+    if (slug) {
+        return slug;
+    }
+
+    return `vehicle-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+}
+
+function createVehicleProfileId(name, year) {
+    return sanitizeVehicleId(`${name}-${year || "vehicle"}`);
+}
+
+function ensureUniqueVehicleId(vehicles, baseId) {
+    let candidateId = sanitizeVehicleId(baseId);
+    let index = 2;
+
+    while (vehicles.some((vehicle) => vehicle.id === candidateId)) {
+        candidateId = `${baseId}-${index}`;
+        index += 1;
+    }
+
+    return sanitizeVehicleId(candidateId);
+}
+
+function getProfileVehicles() {
+    return Array.isArray(profileSettings?.vehicles) &&
+        profileSettings.vehicles.length
+        ? profileSettings.vehicles
+        : createEmptyProfileSettings().vehicles;
+}
+
+function getSelectedVehicle() {
+    const vehicles = getProfileVehicles();
+
+    return (
+        vehicles.find(
+            (vehicle) => vehicle.id === profileSettings.selectedVehicleId,
+        ) ||
+        vehicles[0] ||
+        createEmptyVehiclePlaceholder()
+    );
+}
+
+function getSelectedVehicleId() {
+    const selectedVehicle = getSelectedVehicle();
+
+    return selectedVehicle.isPlaceholder ? "" : selectedVehicle.id;
+}
+
+function hasActiveVehicle() {
+    return Boolean(getSelectedVehicleId());
+}
+
+function formatVehicleMeta(vehicle) {
+    return [vehicle.type, vehicle.year, vehicle.engine || vehicle.name]
+        .filter(Boolean)
+        .join(" • ");
+}
+
+function formatVehicleServiceLine(label, mileage, date) {
+    const parts = [];
+
+    if (Number.isFinite(mileage)) {
+        parts.push(`${formatMileage(mileage)} km`);
+    }
+
+    if (date) {
+        parts.push(formatShortDate(date));
+    }
+
+    return parts.length
+        ? `${label}: ${parts.join(" • ")}`
+        : `${label}: brak danych`;
+}
+
+function readVehicleFormValues() {
+    const type = normalizeText(vehicleTypeInput?.value || "Auto", 20) || "Auto";
+    const name = normalizeText(vehicleNameInput?.value || "", 60);
+    const year = normalizeText(vehicleYearInput?.value || "", 4);
+    const engine = normalizeText(vehicleEngineInput?.value || "", 40);
+    const mileage = Number(vehicleMileageInput?.value || 0);
+    const oilChangeMileageRaw = vehicleOilMileageInput?.value || "";
+    const oilChangeDate = normalizeIsoDate(vehicleOilDateInput?.value || "");
+    const timingDriveMileageRaw = vehicleTimingMileageInput?.value || "";
+    const timingDriveDate = normalizeIsoDate(
+        vehicleTimingDateInput?.value || "",
+    );
+    const oilChangeMileage = Number(oilChangeMileageRaw);
+    const timingDriveMileage = Number(timingDriveMileageRaw);
+
+    if (!name) {
+        showToast("Wpisz nazwę pojazdu.");
+        vehicleNameInput?.focus();
+        return null;
+    }
+
+    if (!Number.isFinite(mileage) || mileage < 0) {
+        showToast("Podaj prawidłowy przebieg pojazdu.");
+        vehicleMileageInput?.focus();
+        return null;
+    }
+
+    if (
+        (oilChangeMileageRaw && !oilChangeDate) ||
+        (!oilChangeMileageRaw && oilChangeDate)
+    ) {
+        showToast("Uzupełnij komplet danych dla ostatniej wymiany oleju.");
+        if (!oilChangeMileageRaw) {
+            vehicleOilMileageInput?.focus();
+        } else {
+            vehicleOilDateInput?.focus();
+        }
+        return null;
+    }
+
+    if (
+        oilChangeMileageRaw &&
+        (!Number.isFinite(oilChangeMileage) || oilChangeMileage < 0)
+    ) {
+        showToast("Podaj prawidłowy przebieg dla wymiany oleju.");
+        vehicleOilMileageInput?.focus();
+        return null;
+    }
+
+    if (
+        (timingDriveMileageRaw && !timingDriveDate) ||
+        (!timingDriveMileageRaw && timingDriveDate)
+    ) {
+        showToast("Uzupełnij komplet danych dla napędu rozrządu.");
+        if (!timingDriveMileageRaw) {
+            vehicleTimingMileageInput?.focus();
+        } else {
+            vehicleTimingDateInput?.focus();
+        }
+        return null;
+    }
+
+    if (
+        timingDriveMileageRaw &&
+        (!Number.isFinite(timingDriveMileage) || timingDriveMileage < 0)
+    ) {
+        showToast("Podaj prawidłowy przebieg dla napędu rozrządu.");
+        vehicleTimingMileageInput?.focus();
+        return null;
+    }
+
+    return {
+        type: type === "Motocykl" ? "Motocykl" : "Auto",
+        name,
+        year,
+        engine,
+        mileage: Math.round(mileage),
+        oilChangeMileage: oilChangeMileageRaw
+            ? Math.round(oilChangeMileage)
+            : null,
+        oilChangeDate,
+        timingDriveMileage: timingDriveMileageRaw
+            ? Math.round(timingDriveMileage)
+            : null,
+        timingDriveDate,
+    };
 }
 
 function getCurrentProfileSyncMode() {
@@ -1692,30 +2619,16 @@ function getProfileSyncPresentation(mode) {
     };
 }
 
-function getProfileOwnerName() {
-    return profileSettings.name || currentUser?.displayName || "Nie ustawiono";
-}
-
-function getProfileInitials(value) {
-    const source = normalizeText(String(value || ""), 40);
-
-    if (!source) {
-        return "CI";
+function getAuthUserLabel() {
+    if (currentUser?.displayName) {
+        return currentUser.displayName;
     }
 
-    const parts = source
-        .split(/[\s@._-]+/)
-        .filter(Boolean)
-        .slice(0, 2);
-
-    if (!parts.length) {
-        return "CI";
+    if (currentUser?.email) {
+        return currentUser.email.split("@")[0] || currentUser.email;
     }
 
-    return parts
-        .map((part) => part.charAt(0).toUpperCase())
-        .join("")
-        .slice(0, 2);
+    return "";
 }
 
 function getProfileSaveToast(mode) {
@@ -1793,19 +2706,10 @@ function formatShortDate(value) {
     return `${String(day).padStart(2, "0")} ${POLISH_MONTHS[month - 1]} ${year}`;
 }
 
-function formatProfileUpdatedAt(value) {
-    const timestamp = Number(value);
+function formatNumericDate(value) {
+    const [year, month, day] = value.split("-").map(Number);
 
-    if (!Number.isFinite(timestamp) || timestamp <= 0) {
-        return "Brak zmian";
-    }
-
-    return new Intl.DateTimeFormat("pl-PL", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-    }).format(new Date(timestamp));
+    return `${String(day).padStart(2, "0")}.${String(month).padStart(2, "0")}.${year}`;
 }
 
 function formatMileage(value) {
@@ -1855,15 +2759,10 @@ function getStatusIcon(kind) {
 
     return `
         <svg viewBox="0 0 24 24">
-            <path d="M12 4v3" />
-            <path d="M12 17v3" />
-            <path d="M4 12h3" />
-            <path d="M17 12h3" />
-            <path d="m6.35 6.35 2.1 2.1" />
-            <path d="m15.55 15.55 2.1 2.1" />
-            <path d="m17.65 6.35-2.1 2.1" />
-            <path d="m8.45 15.55-2.1 2.1" />
-            <circle cx="12" cy="12" r="3.25" />
+            <circle cx="7.5" cy="12" r="2.5" />
+            <circle cx="16.5" cy="12" r="2.5" />
+            <path d="M9.8 10h4.4a2 2 0 0 1 0 4H9.8a2 2 0 0 1 0-4Z" />
+            <path d="M7.5 12h9" />
         </svg>
     `;
 }
@@ -1885,6 +2784,7 @@ function init() {
     setupFirebaseAuth();
     setupNavigation();
     setupProfileActions();
+    setupVehicleActions();
     setupTodoActions();
     setupHistoryActions();
     setupServiceEntryActions();

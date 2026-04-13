@@ -178,241 +178,7 @@
                     hidden
                 >
                     <section
-                        class="page-hero page-hero--profile"
-                        aria-labelledby="profile-page-heading"
-                    >
-                        <div class="profile-hero">
-                            <div class="profile-hero__identity">
-                                <div
-                                    id="profile-avatar"
-                                    class="profile-avatar"
-                                    aria-hidden="true"
-                                >
-                                    CI
-                                </div>
-
-                                <div class="profile-hero__copy section-heading">
-                                    <p class="profile-kicker">
-                                        Panel właściciela
-                                    </p>
-                                    <h1
-                                        id="profile-page-heading"
-                                        class="page-hero__title"
-                                    >
-                                        Profil
-                                    </h1>
-                                    <p
-                                        id="profile-hero-text"
-                                        class="section-subtitle page-hero__subtitle"
-                                    >
-                                        Zarządzaj kontem, synchronizacją i
-                                        ustawieniami auta.
-                                    </p>
-                                </div>
-
-                                <span
-                                    id="profile-sync-pill"
-                                    class="summary-pill profile-sync-pill"
-                                >
-                                    Lokalnie
-                                </span>
-                            </div>
-
-                            <div class="profile-chip-row" aria-live="polite">
-                                <span
-                                    id="profile-owner-chip"
-                                    class="profile-chip"
-                                >
-                                    Tryb lokalny
-                                </span>
-                                <span
-                                    id="profile-storage-chip"
-                                    class="profile-chip profile-chip--accent"
-                                >
-                                    To urządzenie
-                                </span>
-                            </div>
-
-                            <div class="profile-hero__band">
-                                <article class="profile-band__item">
-                                    <span class="profile-band__label">
-                                        Tryb danych
-                                    </span>
-                                    <strong
-                                        id="profile-band-sync"
-                                        class="profile-band__value"
-                                    >
-                                        Lokalnie
-                                    </strong>
-                                </article>
-                                <article class="profile-band__item">
-                                    <span class="profile-band__label">
-                                        Kontakt
-                                    </span>
-                                    <strong
-                                        id="profile-band-contact"
-                                        class="profile-band__value"
-                                    >
-                                        Nie ustawiono
-                                    </strong>
-                                </article>
-                                <article class="profile-band__item">
-                                    <span class="profile-band__label">
-                                        Ostatnia aktualizacja
-                                    </span>
-                                    <strong
-                                        id="profile-band-updated"
-                                        class="profile-band__value"
-                                    >
-                                        Brak zmian
-                                    </strong>
-                                </article>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section
-                        class="auth-card"
-                        aria-labelledby="auth-card-title"
-                    >
-                        <div class="auth-card__copy">
-                            <p class="auth-card__eyebrow">Firebase Auth</p>
-                            <h2 id="auth-card-title" class="auth-card__title">
-                                Bezpieczna synchronizacja
-                            </h2>
-                            <p id="auth-status-text" class="auth-card__text">
-                                Sprawdzanie sesji użytkownika...
-                            </p>
-                            <p id="auth-user-hint" class="auth-card__hint"></p>
-                        </div>
-                        <div class="auth-card__actions">
-                            <button
-                                id="auth-sign-in-button"
-                                class="auth-button"
-                                type="button"
-                            >
-                                Zaloguj Google
-                            </button>
-                            <button
-                                id="auth-sign-out-button"
-                                class="auth-link"
-                                type="button"
-                                hidden
-                            >
-                                Wyloguj
-                            </button>
-                        </div>
-                    </section>
-
-                    <section
-                        class="profile-card profile-card--highlight"
-                        aria-labelledby="profile-summary-title"
-                    >
-                        <header class="section-header">
-                            <div class="section-heading">
-                                <h2 id="profile-summary-title">
-                                    Twoje centrum
-                                </h2>
-                                <p class="section-subtitle">
-                                    Szybki podgląd auta, historii i stanu konta.
-                                </p>
-                            </div>
-                        </header>
-
-                        <div class="profile-stats">
-                            <article class="profile-stat">
-                                <span class="profile-stat__label">
-                                    Wpisy serwisowe
-                                </span>
-                                <strong
-                                    id="profile-history-count"
-                                    class="profile-stat__value"
-                                ></strong>
-                            </article>
-                            <article class="profile-stat">
-                                <span class="profile-stat__label">
-                                    Ostatni serwis
-                                </span>
-                                <strong
-                                    id="profile-last-service"
-                                    class="profile-stat__value"
-                                ></strong>
-                            </article>
-                            <article class="profile-stat">
-                                <span class="profile-stat__label">
-                                    Koszt łącznie
-                                </span>
-                                <strong
-                                    id="profile-total-cost"
-                                    class="profile-stat__value"
-                                ></strong>
-                            </article>
-                        </div>
-
-                        <div class="profile-spotlight">
-                            <div class="profile-spotlight__top">
-                                <div>
-                                    <p class="profile-spotlight__eyebrow">
-                                        Notatka kierowcy
-                                    </p>
-                                    <p
-                                        id="profile-note-preview"
-                                        class="profile-spotlight__text"
-                                    >
-                                        Dodaj krótki opis auta, priorytetów
-                                        serwisowych albo stylu jazdy.
-                                    </p>
-                                </div>
-                                <span
-                                    id="profile-sync-caption"
-                                    class="profile-spotlight__sync"
-                                >
-                                    Szkic lokalny
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="profile-meta">
-                            <article class="profile-meta__item">
-                                <span class="profile-meta__label">Auto</span>
-                                <strong
-                                    id="profile-car-summary"
-                                    class="profile-meta__value"
-                                ></strong>
-                            </article>
-                            <article class="profile-meta__item">
-                                <span class="profile-meta__label">
-                                    Właściciel
-                                </span>
-                                <strong
-                                    id="profile-owner-summary"
-                                    class="profile-meta__value"
-                                ></strong>
-                            </article>
-                            <article class="profile-meta__item">
-                                <span class="profile-meta__label">
-                                    Warsztat
-                                </span>
-                                <strong
-                                    id="profile-workshop-summary"
-                                    class="profile-meta__value"
-                                ></strong>
-                            </article>
-                            <article class="profile-meta__item">
-                                <span class="profile-meta__label">
-                                    Telefon
-                                </span>
-                                <strong
-                                    id="profile-phone-summary"
-                                    class="profile-meta__value"
-                                >
-                                    Nie podano
-                                </strong>
-                            </article>
-                        </div>
-                    </section>
-
-                    <section
+                        id="profile-editor-card"
                         class="profile-card profile-card--editor"
                         aria-labelledby="profile-settings-title"
                     >
@@ -421,10 +187,6 @@
                                 <h2 id="profile-settings-title">
                                     Dane właściciela
                                 </h2>
-                                <p class="section-subtitle">
-                                    Po zalogowaniu ustawienia profilu
-                                    synchronizują się między urządzeniami.
-                                </p>
                             </div>
                             <span
                                 id="profile-settings-badge"
@@ -438,7 +200,7 @@
                             <div class="profile-form__grid">
                                 <label class="field">
                                     <span class="field__label">
-                                        Imię lub nazwa
+                                        Imię i nazwisko
                                     </span>
                                     <input
                                         id="profile-name"
@@ -448,42 +210,6 @@
                                         placeholder="Np. Patryk"
                                         autocomplete="off"
                                     />
-                                </label>
-
-                                <label class="field">
-                                    <span class="field__label">Telefon</span>
-                                    <input
-                                        id="profile-phone"
-                                        class="service-input"
-                                        type="tel"
-                                        maxlength="30"
-                                        placeholder="Np. 500 600 700"
-                                        autocomplete="off"
-                                    />
-                                </label>
-
-                                <label class="field field--full">
-                                    <span class="field__label">
-                                        Preferowany warsztat
-                                    </span>
-                                    <input
-                                        id="profile-workshop"
-                                        class="service-input"
-                                        type="text"
-                                        maxlength="80"
-                                        placeholder="Np. Auto Serwis Nowak"
-                                        autocomplete="off"
-                                    />
-                                </label>
-
-                                <label class="field field--full">
-                                    <span class="field__label">Notatka</span>
-                                    <textarea
-                                        id="profile-notes"
-                                        class="service-textarea"
-                                        maxlength="220"
-                                        placeholder="Np. Samochód używany głównie w trasie"
-                                    ></textarea>
                                 </label>
                             </div>
 
@@ -495,14 +221,334 @@
                                 Zapisz profil
                             </button>
                         </form>
-                        <p id="profile-save-hint" class="profile-note">
-                            Uzupełnij dane właściciela i skrótowe informacje o
-                            obsłudze auta. Po zalogowaniu profil przejdzie do
-                            Firebase.
-                        </p>
+                    </section>
+
+                    <section
+                        id="profile-vehicles-card"
+                        class="profile-card profile-card--vehicles"
+                        aria-labelledby="profile-vehicles-title"
+                    >
+                        <header class="section-header">
+                            <div class="section-heading">
+                                <h2 id="profile-vehicles-title">Pojazdy</h2>
+                                <p class="section-subtitle">
+                                    Wybierz aktywne auto lub motocykl i
+                                    zarządzaj wszystkimi profilami pojazdów.
+                                </p>
+                            </div>
+                            <span
+                                id="profile-vehicles-count"
+                                class="summary-pill"
+                            >
+                                1 pojazd
+                            </span>
+                        </header>
+
+                        <div class="profile-vehicles-panel">
+                            <label class="field field--full">
+                                <span class="field__label">Aktywny pojazd</span>
+                                <select
+                                    id="profile-vehicle-select"
+                                    class="service-input"
+                                ></select>
+                            </label>
+
+                            <p id="profile-vehicles-total" class="profile-note">
+                                Posiadasz 1 pojazd.
+                            </p>
+
+                            <p
+                                id="profile-vehicles-empty"
+                                class="todo-empty"
+                                hidden
+                            >
+                                Brak zapisanych pojazdów.
+                            </p>
+                            <ul
+                                id="profile-vehicles-list"
+                                class="vehicle-list"
+                                aria-label="Lista pojazdów"
+                            ></ul>
+                        </div>
+
+                        <details
+                            id="vehicle-form-dropdown"
+                            class="vehicle-dropdown"
+                        >
+                            <summary class="vehicle-dropdown__summary">
+                                <span class="vehicle-dropdown__title">
+                                    Dodaj pojazd
+                                </span>
+                                <span class="vehicle-dropdown__hint">
+                                    Rozwiń formularz
+                                </span>
+                            </summary>
+
+                            <div class="vehicle-dropdown__content">
+                                <form id="vehicle-form" class="profile-form">
+                                    <div class="profile-form__grid">
+                                        <label class="field">
+                                            <span class="field__label">
+                                                Typ pojazdu
+                                            </span>
+                                            <select
+                                                id="vehicle-type"
+                                                class="service-input"
+                                            >
+                                                <option value="Auto">
+                                                    Auto
+                                                </option>
+                                                <option value="Motocykl">
+                                                    Motocykl
+                                                </option>
+                                            </select>
+                                        </label>
+
+                                        <label class="field">
+                                            <span class="field__label">
+                                                Nazwa pojazdu
+                                            </span>
+                                            <input
+                                                id="vehicle-name"
+                                                class="service-input"
+                                                type="text"
+                                                maxlength="60"
+                                                placeholder="Np. SEAT Ibiza"
+                                                autocomplete="off"
+                                            />
+                                        </label>
+
+                                        <label class="field">
+                                            <span class="field__label"
+                                                >Rok</span
+                                            >
+                                            <input
+                                                id="vehicle-year"
+                                                class="service-input"
+                                                type="text"
+                                                maxlength="4"
+                                                placeholder="Np. 2007"
+                                                inputmode="numeric"
+                                                autocomplete="off"
+                                            />
+                                        </label>
+
+                                        <label class="field">
+                                            <span class="field__label">
+                                                Silnik / opis
+                                            </span>
+                                            <input
+                                                id="vehicle-engine"
+                                                class="service-input"
+                                                type="text"
+                                                maxlength="40"
+                                                placeholder="Np. 1.9 TDI"
+                                                autocomplete="off"
+                                            />
+                                        </label>
+
+                                        <label class="field field--full">
+                                            <span class="field__label">
+                                                Przebieg
+                                            </span>
+                                            <input
+                                                id="vehicle-mileage"
+                                                class="service-input"
+                                                type="number"
+                                                min="0"
+                                                step="1"
+                                                placeholder="Np. 208223"
+                                                inputmode="numeric"
+                                            />
+                                        </label>
+
+                                        <label class="field">
+                                            <span class="field__label">
+                                                Ostatnia wymiana oleju
+                                                (przebieg)
+                                            </span>
+                                            <input
+                                                id="vehicle-oil-mileage"
+                                                class="service-input"
+                                                type="number"
+                                                min="0"
+                                                step="1"
+                                                placeholder="Np. 198500"
+                                                inputmode="numeric"
+                                            />
+                                        </label>
+
+                                        <label class="field">
+                                            <span class="field__label">
+                                                Ostatnia wymiana oleju (data)
+                                            </span>
+                                            <input
+                                                id="vehicle-oil-date"
+                                                class="service-input"
+                                                type="date"
+                                            />
+                                        </label>
+
+                                        <label class="field">
+                                            <span class="field__label">
+                                                Napęd rozrządu (przebieg)
+                                            </span>
+                                            <input
+                                                id="vehicle-timing-mileage"
+                                                class="service-input"
+                                                type="number"
+                                                min="0"
+                                                step="1"
+                                                placeholder="Np. 165000"
+                                                inputmode="numeric"
+                                            />
+                                        </label>
+
+                                        <label class="field">
+                                            <span class="field__label">
+                                                Napęd rozrządu (data)
+                                            </span>
+                                            <input
+                                                id="vehicle-timing-date"
+                                                class="service-input"
+                                                type="date"
+                                            />
+                                        </label>
+                                    </div>
+
+                                    <button
+                                        id="vehicle-submit-button"
+                                        class="profile-save"
+                                        type="submit"
+                                    >
+                                        Dodaj pojazd
+                                    </button>
+                                </form>
+                            </div>
+                        </details>
+
+                        <div class="profile-actions-row">
+                            <button
+                                id="open-auth-modal-button"
+                                class="profile-auth-button"
+                                type="button"
+                            >
+                                Zaloguj do Firebase
+                            </button>
+                            <button
+                                id="profile-sign-out-button"
+                                class="profile-sign-out"
+                                type="button"
+                            >
+                                Wyloguj
+                            </button>
+                        </div>
                     </section>
                 </section>
             </main>
+
+            <div id="auth-modal" class="auth-modal" hidden>
+                <button
+                    class="auth-modal__backdrop"
+                    type="button"
+                    aria-label="Zamknij logowanie"
+                    data-close-auth-modal
+                ></button>
+                <section
+                    class="auth-modal__panel"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="auth-card-title"
+                    aria-describedby="auth-status-text"
+                >
+                    <button
+                        id="close-auth-modal-button"
+                        class="auth-modal__close"
+                        type="button"
+                        aria-label="Zamknij logowanie"
+                        data-close-auth-modal
+                    >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M6 6 18 18" />
+                            <path d="m18 6-12 12" />
+                        </svg>
+                    </button>
+
+                    <section
+                        class="auth-card auth-card--login-screen auth-card--modal"
+                    >
+                        <div class="auth-card__copy">
+                            <p
+                                id="auth-card-eyebrow"
+                                class="auth-card__eyebrow"
+                            >
+                                Email / hasło
+                            </p>
+                            <h2 id="auth-card-title" class="auth-card__title">
+                                Logowanie do chmury
+                            </h2>
+                            <p id="auth-status-text" class="auth-card__text">
+                                Zaloguj się, aby synchronizować profil i
+                                historię serwisową w Firebase.
+                            </p>
+                            <p id="auth-user-hint" class="auth-card__hint"></p>
+                        </div>
+
+                        <div class="auth-card__actions">
+                            <form id="auth-form" class="auth-form">
+                                <label class="field field--full auth-field">
+                                    <span class="field__label">Email</span>
+                                    <input
+                                        id="auth-email-input"
+                                        class="service-input"
+                                        type="email"
+                                        autocomplete="email"
+                                        placeholder="twoj-email@gmail.com"
+                                        inputmode="email"
+                                    />
+                                </label>
+
+                                <label class="field field--full auth-field">
+                                    <span class="field__label">Hasło</span>
+                                    <input
+                                        id="auth-password-input"
+                                        class="service-input"
+                                        type="password"
+                                        autocomplete="current-password"
+                                        placeholder="Minimum 6 znaków"
+                                    />
+                                </label>
+
+                                <div class="auth-form__actions">
+                                    <button
+                                        id="auth-sign-in-button"
+                                        class="auth-button"
+                                        type="submit"
+                                    >
+                                        Zaloguj
+                                    </button>
+                                    <button
+                                        id="auth-register-button"
+                                        class="auth-secondary"
+                                        type="button"
+                                    >
+                                        Utwórz konto
+                                    </button>
+                                </div>
+                            </form>
+
+                            <button
+                                id="auth-sign-out-button"
+                                class="auth-link"
+                                type="button"
+                                hidden
+                            >
+                                Wyloguj
+                            </button>
+                        </div>
+                    </section>
+                </section>
+            </div>
 
             <div id="entry-sheet" class="entry-sheet" hidden>
                 <button

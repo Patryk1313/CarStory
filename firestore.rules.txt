@@ -1,18 +1,38 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isOwner() {
-      return request.auth != null &&
-        request.auth.token.email == "twoj-email@gmail.com" &&
-        request.auth.token.email_verified == true;
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwnProfile(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isLegacyHistoryEntry() {
+      return !resource.data.keys().hasAny(["ownerUid"]);
+    }
+
+    function isHistoryOwner() {
+      return isSignedIn() && (
+        isLegacyHistoryEntry() ||
+        resource.data.ownerUid == request.auth.uid
+      );
+    }
+
+    function isWritingOwnHistory() {
+      return isSignedIn() &&
+        request.resource.data.ownerUid == request.auth.uid;
     }
 
     match /cars/{carId}/serviceHistory/{entryId} {
-      allow read, write: if isOwner();
+      allow create: if isWritingOwnHistory();
+      allow read, delete: if isHistoryOwner();
+      allow update: if isHistoryOwner() && isWritingOwnHistory();
     }
 
     match /cars/{carId}/profiles/{userId} {
-      allow read, write: if isOwner() && request.auth.uid == userId;
+      allow read, write: if isOwnProfile(userId);
     }
   }
 }

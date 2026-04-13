@@ -852,6 +852,7 @@ button {
 .status-card--interactive {
     width: 100%;
     appearance: none;
+    color: inherit;
     text-align: left;
     cursor: pointer;
     transition:
@@ -971,6 +972,7 @@ button {
     line-height: 1;
     font-weight: 800;
     letter-spacing: -0.075em;
+    color: var(--text);
     font-variant-numeric: tabular-nums;
 }
 

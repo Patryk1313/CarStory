@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner() {
+      return request.auth != null &&
+        request.auth.token.email == "twoj-email@gmail.com" &&
+        request.auth.token.email_verified == true;
+    }
+
+    match /cars/{carId}/serviceHistory/{entryId} {
+      allow read, write: if isOwner();
+    }
+
+    match /cars/{carId}/profiles/{userId} {
+      allow read, write: if isOwner() && request.auth.uid == userId;
+    }
+  }
+}

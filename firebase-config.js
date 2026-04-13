@@ -8,12 +8,22 @@ const firebaseConfig = {
 };
 
 if (typeof firebase !== "undefined") {
-    const firebaseApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
-    const firestoreDb = typeof firebase.firestore === "function" ? firebase.firestore() : null;
+    const firebaseApp = firebase.apps.length
+        ? firebase.app()
+        : firebase.initializeApp(firebaseConfig);
+    const firebaseAuth =
+        typeof firebase.auth === "function" ? firebase.auth() : null;
+    const firestoreDb =
+        typeof firebase.firestore === "function" ? firebase.firestore() : null;
+
+    if (firebaseAuth) {
+        firebaseAuth.useDeviceLanguage();
+    }
 
     window.firebaseApp = firebaseApp;
     window.carInfoFirebase = {
         app: firebaseApp,
+        auth: firebaseAuth,
         db: firestoreDb,
         config: firebaseConfig,
     };

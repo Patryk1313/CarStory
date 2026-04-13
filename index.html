@@ -15,7 +15,11 @@
     <body>
         <div class="app-shell">
             <main class="app">
-                <section id="dashboard-view" class="view view--active" data-view="dashboard">
+                <section
+                    id="dashboard-view"
+                    class="view view--active"
+                    data-view="dashboard"
+                >
                     <section class="hero" aria-label="Informacje o pojezdzie">
                         <div class="hero__content">
                             <h1 id="car-name" class="hero__title"></h1>
@@ -83,10 +87,17 @@
                         </button>
                     </section>
 
-                    <section class="history-card" aria-labelledby="history-title">
+                    <section
+                        class="history-card"
+                        aria-labelledby="history-title"
+                    >
                         <header class="section-header">
                             <h2 id="history-title">Historia serwisowa</h2>
-                            <button id="open-history-view-button" class="text-button" type="button">
+                            <button
+                                id="open-history-view-button"
+                                class="text-button"
+                                type="button"
+                            >
                                 Zobacz wszystko
                             </button>
                         </header>
@@ -94,12 +105,26 @@
                     </section>
                 </section>
 
-                <section id="history-view" class="view" data-view="history" hidden>
-                    <section class="page-hero page-hero--history" aria-labelledby="history-page-heading">
+                <section
+                    id="history-view"
+                    class="view"
+                    data-view="history"
+                    hidden
+                >
+                    <section
+                        class="page-hero page-hero--history"
+                        aria-labelledby="history-page-heading"
+                    >
                         <div class="section-heading">
-                            <h1 id="history-page-heading" class="page-hero__title">Historia</h1>
+                            <h1
+                                id="history-page-heading"
+                                class="page-hero__title"
+                            >
+                                Historia
+                            </h1>
                             <p class="section-subtitle page-hero__subtitle">
-                                Edytuj, usuwaj i przeglądaj wpisy serwisowe auta.
+                                Edytuj, usuwaj i przeglądaj wpisy serwisowe
+                                auta.
                             </p>
                         </div>
                         <button
@@ -114,21 +139,314 @@
                         </button>
                     </section>
 
-                    <section class="history-manage-card" aria-labelledby="history-manage-title">
+                    <section
+                        class="history-manage-card"
+                        aria-labelledby="history-manage-title"
+                    >
                         <header class="section-header">
                             <div class="section-heading">
-                                <h2 id="history-manage-title">Wszystkie wpisy</h2>
+                                <h2 id="history-manage-title">
+                                    Wszystkie wpisy
+                                </h2>
                                 <p class="section-subtitle">
-                                    Z tego miejsca zmienisz lub usuniesz wpis z historii serwisowej.
+                                    Z tego miejsca zmienisz lub usuniesz wpis z
+                                    historii serwisowej.
                                 </p>
                             </div>
-                            <span id="history-count" class="summary-pill" aria-live="polite"></span>
+                            <span
+                                id="history-count"
+                                class="summary-pill"
+                                aria-live="polite"
+                            ></span>
                         </header>
 
                         <p id="history-page-empty" class="todo-empty" hidden>
                             Brak wpisów w historii serwisowej.
                         </p>
-                        <ol id="history-page-list" class="history-manage-list" aria-label="Pełna historia serwisowa"></ol>
+                        <ol
+                            id="history-page-list"
+                            class="history-manage-list"
+                            aria-label="Pełna historia serwisowa"
+                        ></ol>
+                    </section>
+                </section>
+
+                <section
+                    id="profile-view"
+                    class="view"
+                    data-view="profile"
+                    hidden
+                >
+                    <section
+                        class="page-hero page-hero--profile"
+                        aria-labelledby="profile-page-heading"
+                    >
+                        <div class="profile-hero">
+                            <div class="profile-hero__identity">
+                                <div
+                                    id="profile-avatar"
+                                    class="profile-avatar"
+                                    aria-hidden="true"
+                                >
+                                    CI
+                                </div>
+
+                                <div class="profile-hero__copy section-heading">
+                                    <p class="profile-kicker">
+                                        Panel właściciela
+                                    </p>
+                                    <h1
+                                        id="profile-page-heading"
+                                        class="page-hero__title"
+                                    >
+                                        Profil
+                                    </h1>
+                                    <p
+                                        id="profile-hero-text"
+                                        class="section-subtitle page-hero__subtitle"
+                                    >
+                                        Zarządzaj kontem, synchronizacją i
+                                        ustawieniami auta.
+                                    </p>
+                                </div>
+
+                                <span
+                                    id="profile-sync-pill"
+                                    class="summary-pill profile-sync-pill"
+                                >
+                                    Lokalnie
+                                </span>
+                            </div>
+
+                            <div class="profile-chip-row" aria-live="polite">
+                                <span id="profile-owner-chip" class="profile-chip">
+                                    Tryb lokalny
+                                </span>
+                                <span
+                                    id="profile-storage-chip"
+                                    class="profile-chip profile-chip--accent"
+                                >
+                                    To urządzenie
+                                </span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section
+                        class="auth-card"
+                        aria-labelledby="auth-card-title"
+                    >
+                        <div class="auth-card__copy">
+                            <p class="auth-card__eyebrow">Firebase Auth</p>
+                            <h2 id="auth-card-title" class="auth-card__title">
+                                Bezpieczna synchronizacja
+                            </h2>
+                            <p id="auth-status-text" class="auth-card__text">
+                                Sprawdzanie sesji użytkownika...
+                            </p>
+                            <p id="auth-user-hint" class="auth-card__hint"></p>
+                        </div>
+                        <div class="auth-card__actions">
+                            <button
+                                id="auth-sign-in-button"
+                                class="auth-button"
+                                type="button"
+                            >
+                                Zaloguj Google
+                            </button>
+                            <button
+                                id="auth-sign-out-button"
+                                class="auth-link"
+                                type="button"
+                                hidden
+                            >
+                                Wyloguj
+                            </button>
+                        </div>
+                    </section>
+
+                    <section
+                        class="profile-card profile-card--highlight"
+                        aria-labelledby="profile-summary-title"
+                    >
+                        <header class="section-header">
+                            <div class="section-heading">
+                                <h2 id="profile-summary-title">
+                                    Twoje centrum
+                                </h2>
+                                <p class="section-subtitle">
+                                    Szybki podgląd auta, historii i stanu konta.
+                                </p>
+                            </div>
+                        </header>
+
+                        <div class="profile-stats">
+                            <article class="profile-stat">
+                                <span class="profile-stat__label">
+                                    Wpisy serwisowe
+                                </span>
+                                <strong
+                                    id="profile-history-count"
+                                    class="profile-stat__value"
+                                ></strong>
+                            </article>
+                            <article class="profile-stat">
+                                <span class="profile-stat__label">
+                                    Ostatni serwis
+                                </span>
+                                <strong
+                                    id="profile-last-service"
+                                    class="profile-stat__value"
+                                ></strong>
+                            </article>
+                            <article class="profile-stat">
+                                <span class="profile-stat__label">
+                                    Koszt łącznie
+                                </span>
+                                <strong
+                                    id="profile-total-cost"
+                                    class="profile-stat__value"
+                                ></strong>
+                            </article>
+                        </div>
+
+                        <div class="profile-spotlight">
+                            <div class="profile-spotlight__top">
+                                <div>
+                                    <p class="profile-spotlight__eyebrow">
+                                        Notatka kierowcy
+                                    </p>
+                                    <p
+                                        id="profile-note-preview"
+                                        class="profile-spotlight__text"
+                                    >
+                                        Dodaj krótki opis auta, priorytetów
+                                        serwisowych albo stylu jazdy.
+                                    </p>
+                                </div>
+                                <span
+                                    id="profile-sync-caption"
+                                    class="profile-spotlight__sync"
+                                >
+                                    Szkic lokalny
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="profile-meta">
+                            <article class="profile-meta__item">
+                                <span class="profile-meta__label">Auto</span>
+                                <strong
+                                    id="profile-car-summary"
+                                    class="profile-meta__value"
+                                ></strong>
+                            </article>
+                            <article class="profile-meta__item">
+                                <span class="profile-meta__label">
+                                    Właściciel
+                                </span>
+                                <strong
+                                    id="profile-owner-summary"
+                                    class="profile-meta__value"
+                                ></strong>
+                            </article>
+                            <article class="profile-meta__item">
+                                <span class="profile-meta__label">
+                                    Warsztat
+                                </span>
+                                <strong
+                                    id="profile-workshop-summary"
+                                    class="profile-meta__value"
+                                ></strong>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section
+                        class="profile-card profile-card--editor"
+                        aria-labelledby="profile-settings-title"
+                    >
+                        <header class="section-header">
+                            <div class="section-heading">
+                                <h2 id="profile-settings-title">
+                                    Dane właściciela
+                                </h2>
+                                <p class="section-subtitle">
+                                    Po zalogowaniu ustawienia profilu
+                                    synchronizują się między urządzeniami.
+                                </p>
+                            </div>
+                            <span id="profile-settings-badge" class="summary-pill">
+                                Lokalnie
+                            </span>
+                        </header>
+
+                        <form id="profile-form" class="profile-form">
+                            <div class="profile-form__grid">
+                                <label class="field">
+                                    <span class="field__label">
+                                        Imię lub nazwa
+                                    </span>
+                                    <input
+                                        id="profile-name"
+                                        class="service-input"
+                                        type="text"
+                                        maxlength="60"
+                                        placeholder="Np. Patryk"
+                                        autocomplete="off"
+                                    />
+                                </label>
+
+                                <label class="field">
+                                    <span class="field__label">Telefon</span>
+                                    <input
+                                        id="profile-phone"
+                                        class="service-input"
+                                        type="tel"
+                                        maxlength="30"
+                                        placeholder="Np. 500 600 700"
+                                        autocomplete="off"
+                                    />
+                                </label>
+
+                                <label class="field field--full">
+                                    <span class="field__label">
+                                        Preferowany warsztat
+                                    </span>
+                                    <input
+                                        id="profile-workshop"
+                                        class="service-input"
+                                        type="text"
+                                        maxlength="80"
+                                        placeholder="Np. Auto Serwis Nowak"
+                                        autocomplete="off"
+                                    />
+                                </label>
+
+                                <label class="field field--full">
+                                    <span class="field__label">Notatka</span>
+                                    <textarea
+                                        id="profile-notes"
+                                        class="service-textarea"
+                                        maxlength="220"
+                                        placeholder="Np. Samochód używany głównie w trasie"
+                                    ></textarea>
+                                </label>
+                            </div>
+
+                            <button
+                                id="profile-save-button"
+                                class="profile-save"
+                                type="submit"
+                            >
+                                Zapisz profil
+                            </button>
+                        </form>
+                        <p id="profile-save-hint" class="profile-note">
+                            Uzupełnij dane właściciela i skrótowe informacje o
+                            obsłudze auta. Po zalogowaniu profil przejdzie do
+                            Firebase.
+                        </p>
                     </section>
                 </section>
             </main>
@@ -248,7 +566,11 @@
                             >
                                 Anuluj
                             </button>
-                            <button id="service-form-submit-button" class="service-form__submit" type="submit">
+                            <button
+                                id="service-form-submit-button"
+                                class="service-form__submit"
+                                type="submit"
+                            >
                                 Zapisz wpis
                             </button>
                         </div>
@@ -305,9 +627,10 @@
                     <span>Części</span>
                 </button>
                 <button
+                    id="nav-profile"
                     class="nav-item"
                     type="button"
-                    data-placeholder="Profil jest w przygotowaniu"
+                    data-nav-view="profile"
                 >
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
@@ -320,6 +643,7 @@
 
         <div id="toast" class="toast" role="status" aria-live="polite"></div>
         <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
         <script src="firebase-config.js"></script>
         <script src="script.js"></script>

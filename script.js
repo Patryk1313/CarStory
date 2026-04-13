@@ -376,9 +376,9 @@ function renderTimeline() {
         return;
     }
 
-    const previewEntries = historyEntries.slice(0, 3);
+    const timelineEntries = historyEntries;
 
-    if (!previewEntries.length) {
+    if (!timelineEntries.length) {
         timeline.innerHTML = `
             <li class="timeline-item">
                 <p class="timeline-item__description">Brak wpisów w historii serwisowej.</p>
@@ -387,7 +387,7 @@ function renderTimeline() {
         return;
     }
 
-    timeline.innerHTML = previewEntries
+    timeline.innerHTML = timelineEntries
         .map(
             (entry) => `
         <li class="timeline-item">

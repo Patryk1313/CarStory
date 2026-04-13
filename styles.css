@@ -1545,7 +1545,11 @@ button {
     top: 8px;
     bottom: 38px;
     width: 2px;
-    background: linear-gradient(180deg, #dce5f2 0%, #edf3fa 100%);
+    background: repeating-linear-gradient(
+        180deg,
+        #dce5f2 0 4px,
+        transparent 4px 8px
+    );
 }
 
 .timeline-item {

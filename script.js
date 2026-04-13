@@ -230,9 +230,6 @@ function renderStatuses() {
                     <span class="status-card__next-label">Przejdź do<br>Profilu</span>
                     <span class="status-card__next-badge">Teraz</span>
                 </div>
-                <div class="status-card__progress" aria-hidden="true">
-                    <div class="status-card__progress-bar" style="width: 14%"></div>
-                </div>
             </article>
         `;
         return;
@@ -267,9 +264,6 @@ function renderStatuses() {
                     <span class="status-card__next-badge">${statusPresentation.nextMileageLabel}</span>
                     ${statusPresentation.nextDateLabel ? `<span class="status-card__next-date">${statusPresentation.nextDateLabel}</span>` : ""}
                 </div>
-            </div>
-            <div class="status-card__progress" aria-hidden="true">
-                <div class="status-card__progress-bar" style="width: ${statusPresentation.progress}%"></div>
             </div>
         </article>
     `;

@@ -117,6 +117,9 @@ const profileHeroText = document.getElementById("profile-hero-text");
 const profileSyncPill = document.getElementById("profile-sync-pill");
 const profileOwnerChip = document.getElementById("profile-owner-chip");
 const profileStorageChip = document.getElementById("profile-storage-chip");
+const profileBandSync = document.getElementById("profile-band-sync");
+const profileBandContact = document.getElementById("profile-band-contact");
+const profileBandUpdated = document.getElementById("profile-band-updated");
 const profileHistoryCount = document.getElementById("profile-history-count");
 const profileLastService = document.getElementById("profile-last-service");
 const profileTotalCost = document.getElementById("profile-total-cost");
@@ -125,6 +128,7 @@ const profileOwnerSummary = document.getElementById("profile-owner-summary");
 const profileWorkshopSummary = document.getElementById(
     "profile-workshop-summary",
 );
+const profilePhoneSummary = document.getElementById("profile-phone-summary");
 const profileNotePreview = document.getElementById("profile-note-preview");
 const profileSyncCaption = document.getElementById("profile-sync-caption");
 const profileSettingsBadge = document.getElementById("profile-settings-badge");
@@ -330,8 +334,11 @@ function renderProfileSummary() {
     const syncMode = getCurrentProfileSyncMode();
     const syncPresentation = getProfileSyncPresentation(syncMode);
     const ownerName = getProfileOwnerName();
-    const ownerChipText = currentUser?.email ||
+    const profilePhone = profileSettings.phone || "Nie podano";
+    const ownerChipText =
+        currentUser?.email ||
         (ownerName !== "Nie ustawiono" ? ownerName : "Tryb lokalny");
+    const bandContact = currentUser?.email || profileSettings.phone || ownerName;
     const ownerSummary = currentUser?.email
         ? `${ownerName} • ${currentUser.email}`
         : profileSettings.phone
@@ -356,6 +363,10 @@ function renderProfileSummary() {
     profileWorkshopSummary.textContent =
         profileSettings.workshop || "Brak preferowanego warsztatu";
 
+    if (profilePhoneSummary) {
+        profilePhoneSummary.textContent = profilePhone;
+    }
+
     if (profileAvatar) {
         profileAvatar.textContent = avatarLabel;
     }
@@ -371,6 +382,20 @@ function renderProfileSummary() {
     if (profileStorageChip) {
         profileStorageChip.textContent = syncPresentation.storage;
         profileStorageChip.dataset.syncMode = syncMode;
+    }
+
+    if (profileBandSync) {
+        profileBandSync.textContent = syncPresentation.badge;
+    }
+
+    if (profileBandContact) {
+        profileBandContact.textContent = bandContact;
+    }
+
+    if (profileBandUpdated) {
+        profileBandUpdated.textContent = formatProfileUpdatedAt(
+            profileSettings.updatedAt,
+        );
     }
 
     if (profileSyncPill) {
@@ -1102,9 +1127,8 @@ function syncProfileWithFirebase() {
         async (documentSnapshot) => {
             if (!documentSnapshot.exists) {
                 if (hasProfileContent(profileSettings)) {
-                    const seeded = await writeProfileSettingsToFirebase(
-                        profileSettings,
-                    );
+                    const seeded =
+                        await writeProfileSettingsToFirebase(profileSettings);
 
                     if (seeded) {
                         return;
@@ -1124,7 +1148,10 @@ function syncProfileWithFirebase() {
             renderProfileSummary();
         },
         (error) => {
-            console.error("Unable to sync profile settings from Firebase.", error);
+            console.error(
+                "Unable to sync profile settings from Firebase.",
+                error,
+            );
             profileSyncMode = "error";
             renderProfileSummary();
 
@@ -1587,9 +1614,9 @@ function hasProfileContent(profile) {
 
     return Boolean(
         normalizedProfile.name ||
-            normalizedProfile.phone ||
-            normalizedProfile.workshop ||
-            normalizedProfile.notes,
+        normalizedProfile.phone ||
+        normalizedProfile.workshop ||
+        normalizedProfile.notes,
     );
 }
 
@@ -1764,6 +1791,21 @@ function formatShortDate(value) {
     const [year, month, day] = value.split("-").map(Number);
 
     return `${String(day).padStart(2, "0")} ${POLISH_MONTHS[month - 1]} ${year}`;
+}
+
+function formatProfileUpdatedAt(value) {
+    const timestamp = Number(value);
+
+    if (!Number.isFinite(timestamp) || timestamp <= 0) {
+        return "Brak zmian";
+    }
+
+    return new Intl.DateTimeFormat("pl-PL", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+    }).format(new Date(timestamp));
 }
 
 function formatMileage(value) {

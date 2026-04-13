@@ -202,6 +202,7 @@ let hasShownHistorySyncError = false;
 let hasShownProfileSyncError = false;
 let historyUnsubscribe = null;
 let profileUnsubscribe = null;
+let profileSyncRevision = 0;
 let todos = loadTodos();
 let profileSettings = loadProfileSettings();
 let historyEntries = loadHistoryCache();
@@ -1324,6 +1325,8 @@ function restartHistorySync() {
 }
 
 function restartProfileSync() {
+    profileSyncRevision += 1;
+
     if (typeof profileUnsubscribe === "function") {
         profileUnsubscribe();
         profileUnsubscribe = null;
@@ -1345,7 +1348,7 @@ function restartProfileSync() {
 
     profileSyncMode = "syncing";
     renderProfileSummary();
-    syncProfileWithFirebase();
+    void syncProfileWithFirebase(profileSyncRevision);
 }
 
 function refreshVehicleContext({ restartHistory = false } = {}) {
@@ -1732,20 +1735,52 @@ function saveHistoryCache() {
 }
 
 function getHistoryCollection() {
-    const firebaseState = window.carInfoFirebase;
-    const vehicleId = getSelectedVehicleId();
+    return getHistoryCollectionForVehicle(getSelectedVehicleId());
+}
 
-    if (!firebaseState || !firebaseState.db || !vehicleId) {
+function getHistoryCollectionForVehicle(vehicleId) {
+    const vehicleDocument = getVehicleDocument(vehicleId);
+
+    if (!vehicleDocument) {
+        return null;
+    }
+
+    return vehicleDocument.collection("serviceHistory");
+}
+
+function getVehicleCollection() {
+    const userDocument = getUserDocument();
+
+    if (!userDocument) {
+        return null;
+    }
+
+    return userDocument.collection("vehicles");
+}
+
+function getVehicleDocument(vehicleId) {
+    const vehicleCollection = getVehicleCollection();
+
+    if (!vehicleCollection || !vehicleId) {
+        return null;
+    }
+
+    return vehicleCollection.doc(vehicleId);
+}
+
+function getUserDocument() {
+    const firebaseState = window.carInfoFirebase;
+
+    if (!firebaseState || !firebaseState.db || !currentUser) {
         return null;
     }
 
     return firebaseState.db
-        .collection("cars")
-        .doc(vehicleId)
-        .collection("serviceHistory");
+        .collection("users")
+        .doc(currentUser.uid);
 }
 
-function getProfileDocument() {
+function getLegacyProfileDocument() {
     const firebaseState = window.carInfoFirebase;
 
     if (!firebaseState || !firebaseState.db || !currentUser) {
@@ -1759,52 +1794,155 @@ function getProfileDocument() {
         .doc(currentUser.uid);
 }
 
-function syncProfileWithFirebase() {
-    const profileDocument = getProfileDocument();
+function getLegacyHistoryCollection(vehicleId) {
+    const firebaseState = window.carInfoFirebase;
 
-    if (!profileDocument || !currentUser) {
+    if (!firebaseState || !firebaseState.db || !vehicleId) {
+        return null;
+    }
+
+    return firebaseState.db
+        .collection("cars")
+        .doc(vehicleId)
+        .collection("serviceHistory");
+}
+
+async function syncProfileWithFirebase(syncRevision = profileSyncRevision) {
+    const userDocument = getUserDocument();
+    const vehicleCollection = getVehicleCollection();
+
+    if (!userDocument || !vehicleCollection || !currentUser) {
         return;
     }
 
-    profileUnsubscribe = profileDocument.onSnapshot(
-        async (documentSnapshot) => {
-            if (!documentSnapshot.exists) {
-                if (hasProfileContent(profileSettings)) {
-                    const seeded =
-                        await writeProfileSettingsToFirebase(profileSettings);
+    await ensureRemoteProfileData();
 
-                    if (seeded) {
-                        return;
-                    }
-                }
+    if (syncRevision !== profileSyncRevision || !currentUser) {
+        return;
+    }
 
-                profileSyncMode = "firebase";
-                renderProfileSummary();
-                return;
-            }
+    let remoteProfileDocument = normalizeRemoteProfileDocument(null);
+    let remoteVehicles = null;
 
-            profileSettings = normalizeProfileSettings(documentSnapshot.data());
-            saveProfileSettings();
-            hasShownProfileSyncError = false;
-            profileSyncMode = "firebase";
-            refreshVehicleContext({ restartHistory: true });
-        },
-        (error) => {
-            console.error(
-                "Unable to sync profile settings from Firebase.",
-                error,
+    const applyRemoteProfileState = () => {
+        if (!Array.isArray(remoteVehicles)) {
+            return;
+        }
+
+        profileSettings = normalizeProfileSettings({
+            vehicles: remoteVehicles,
+            selectedVehicleId: remoteProfileDocument.selectedVehicleId,
+            updatedAt: remoteProfileDocument.updatedAt,
+        });
+        saveProfileSettings();
+        hasShownProfileSyncError = false;
+        profileSyncMode = "firebase";
+        refreshVehicleContext({ restartHistory: true });
+    };
+
+    const handleProfileSyncError = (error) => {
+        console.error(
+            "Unable to sync profile settings from Firebase.",
+            error,
+        );
+        profileSyncMode = "error";
+        renderProfileSummary();
+
+        if (!hasShownProfileSyncError) {
+            showToast(
+                "Dane pojazdów działają z pamięci urządzenia. Synchronizacja z Firebase nie odpowiedziała.",
             );
-            profileSyncMode = "error";
-            renderProfileSummary();
+            hasShownProfileSyncError = true;
+        }
+    };
 
-            if (!hasShownProfileSyncError) {
-                showToast(
-                    "Dane pojazdów działają z pamięci urządzenia. Synchronizacja z Firebase nie odpowiedziała.",
-                );
-                hasShownProfileSyncError = true;
-            }
+    const userUnsubscribe = userDocument.onSnapshot(
+        (documentSnapshot) => {
+            remoteProfileDocument = normalizeRemoteProfileDocument(
+                documentSnapshot.exists ? documentSnapshot.data() : null,
+            );
+            applyRemoteProfileState();
         },
+        handleProfileSyncError,
     );
+
+    const vehicleUnsubscribe = vehicleCollection.onSnapshot(
+        (snapshot) => {
+            remoteVehicles = snapshot.docs
+                .map((documentSnapshot) =>
+                    normalizeVehicleProfile({
+                        id: documentSnapshot.id,
+                        ...documentSnapshot.data(),
+                    }),
+                )
+                .filter(Boolean);
+            applyRemoteProfileState();
+        },
+        handleProfileSyncError,
+    );
+
+    profileUnsubscribe = () => {
+        userUnsubscribe();
+        vehicleUnsubscribe();
+    };
+}
+
+function normalizeRemoteProfileDocument(profile) {
+    const updatedAt = Number(profile?.updatedAt);
+
+    return {
+        selectedVehicleId:
+            typeof profile?.selectedVehicleId === "string"
+                ? profile.selectedVehicleId
+                : "",
+        updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0,
+    };
+}
+
+async function ensureRemoteProfileData() {
+    const userDocument = getUserDocument();
+    const vehicleCollection = getVehicleCollection();
+
+    if (!userDocument || !vehicleCollection || !currentUser) {
+        return false;
+    }
+
+    try {
+        const [userSnapshot, vehiclePreviewSnapshot] = await Promise.all([
+            userDocument.get(),
+            vehicleCollection.limit(1).get(),
+        ]);
+
+        if (!vehiclePreviewSnapshot.empty) {
+            if (!userSnapshot.exists) {
+                await userDocument.set(
+                    serializeProfileSettings(
+                        createEmptyProfileSettings(),
+                        vehiclePreviewSnapshot.docs[0].id,
+                    ),
+                    {
+                        merge: true,
+                    },
+                );
+            }
+
+            return true;
+        }
+
+        const migrated = await migrateLegacyFirebaseData();
+
+        if (migrated) {
+            return true;
+        }
+
+        if (hasProfileContent(profileSettings)) {
+            return await writeProfileSettingsToFirebase(profileSettings);
+        }
+    } catch (error) {
+        console.error("Unable to initialize Firebase vehicle structure.", error);
+    }
+
+    return false;
 }
 
 async function persistProfileSettings(profile) {
@@ -1812,10 +1950,11 @@ async function persistProfileSettings(profile) {
     saveProfileSettings();
     refreshVehicleContext();
 
-    const profileDocument = getProfileDocument();
+    const userDocument = getUserDocument();
+    const vehicleCollection = getVehicleCollection();
     const firebaseState = window.carInfoFirebase;
 
-    if (!profileDocument || !currentUser) {
+    if (!userDocument || !vehicleCollection || !currentUser) {
         profileSyncMode =
             firebaseState && firebaseState.auth && firebaseState.db
                 ? "guest"
@@ -1841,20 +1980,211 @@ async function persistProfileSettings(profile) {
     return "error";
 }
 
-async function writeProfileSettingsToFirebase(profile) {
-    const profileDocument = getProfileDocument();
+async function writeProfileSettingsToFirebase(
+    profile,
+    { historyByVehicleId = null } = {},
+) {
+    const firebaseState = window.carInfoFirebase;
+    const userDocument = getUserDocument();
+    const vehicleCollection = getVehicleCollection();
 
-    if (!profileDocument || !currentUser) {
+    if (!firebaseState?.db || !userDocument || !vehicleCollection || !currentUser) {
         return false;
     }
 
     try {
-        await profileDocument.set(serializeProfileSettings(profile), {
+        const normalizedProfile = normalizeProfileSettings(profile);
+        const remoteVehicleSnapshot = await vehicleCollection.get();
+        const nextVehicleIds = new Set(
+            normalizedProfile.vehicles.map((vehicle) => vehicle.id),
+        );
+        const removedVehicleIds = remoteVehicleSnapshot.docs
+            .map((documentSnapshot) => documentSnapshot.id)
+            .filter((vehicleId) => !nextVehicleIds.has(vehicleId));
+
+        for (const vehicleId of removedVehicleIds) {
+            const deleted = await deleteVehicleFromFirebase(vehicleId);
+
+            if (!deleted) {
+                return false;
+            }
+        }
+
+        const batch = firebaseState.db.batch();
+
+        batch.set(userDocument, serializeProfileSettings(normalizedProfile), {
             merge: true,
         });
+
+        normalizedProfile.vehicles.forEach((vehicle) => {
+            const serializedVehicle = serializeVehicleProfileRecord(vehicle);
+
+            if (!serializedVehicle) {
+                return;
+            }
+
+            batch.set(vehicleCollection.doc(vehicle.id), serializedVehicle, {
+                merge: true,
+            });
+        });
+
+        await batch.commit();
+
+        if (historyByVehicleId) {
+            const historyWritten = await writeHistoryEntriesToFirebase(
+                historyByVehicleId,
+            );
+
+            if (!historyWritten) {
+                return false;
+            }
+        }
+
         return true;
     } catch (error) {
         console.error("Unable to save profile settings to Firebase.", error);
+        return false;
+    }
+}
+
+async function migrateLegacyFirebaseData() {
+    const legacyProfileDocument = getLegacyProfileDocument();
+
+    if (!legacyProfileDocument || !currentUser) {
+        return false;
+    }
+
+    try {
+        const legacyProfileSnapshot = await legacyProfileDocument.get();
+
+        if (!legacyProfileSnapshot.exists) {
+            return false;
+        }
+
+        const legacyProfile = normalizeProfileSettings(legacyProfileSnapshot.data());
+
+        if (!hasProfileContent(legacyProfile)) {
+            return false;
+        }
+
+        const historyByVehicleId = await readLegacyHistoryEntries(
+            legacyProfile.vehicles.map((vehicle) => vehicle.id),
+        );
+
+        return await writeProfileSettingsToFirebase(legacyProfile, {
+            historyByVehicleId,
+        });
+    } catch (error) {
+        console.error("Unable to migrate legacy Firebase vehicle data.", error);
+        return false;
+    }
+}
+
+async function readLegacyHistoryEntries(vehicleIds) {
+    const historyByVehicleId = {};
+
+    await Promise.all(
+        vehicleIds.map(async (vehicleId) => {
+            const legacyHistoryCollection = getLegacyHistoryCollection(vehicleId);
+
+            if (!legacyHistoryCollection) {
+                historyByVehicleId[vehicleId] = [];
+                return;
+            }
+
+            try {
+                const snapshot = await legacyHistoryCollection.get();
+
+                historyByVehicleId[vehicleId] = snapshot.docs
+                    .map((documentSnapshot) =>
+                        normalizeHistoryEntry({
+                            id: documentSnapshot.id,
+                            ...documentSnapshot.data(),
+                        }),
+                    )
+                    .filter(Boolean);
+            } catch (error) {
+                console.error(
+                    `Unable to read legacy service history for vehicle ${vehicleId}.`,
+                    error,
+                );
+                historyByVehicleId[vehicleId] = [];
+            }
+        }),
+    );
+
+    return historyByVehicleId;
+}
+
+async function writeHistoryEntriesToFirebase(historyByVehicleId) {
+    const firebaseState = window.carInfoFirebase;
+
+    if (!firebaseState?.db || !currentUser) {
+        return false;
+    }
+
+    try {
+        const batch = firebaseState.db.batch();
+        let hasWrites = false;
+
+        Object.entries(historyByVehicleId).forEach(([vehicleId, entries]) => {
+            const historyCollection = getHistoryCollectionForVehicle(vehicleId);
+
+            if (!historyCollection || !Array.isArray(entries)) {
+                return;
+            }
+
+            entries.forEach((entry) => {
+                const normalizedEntry = normalizeHistoryEntry(entry);
+
+                if (!normalizedEntry) {
+                    return;
+                }
+
+                batch.set(
+                    historyCollection.doc(normalizedEntry.id),
+                    serializeHistoryEntry(normalizedEntry),
+                    {
+                        merge: true,
+                    },
+                );
+                hasWrites = true;
+            });
+        });
+
+        if (!hasWrites) {
+            return true;
+        }
+
+        await batch.commit();
+        return true;
+    } catch (error) {
+        console.error("Unable to write migrated service history to Firebase.", error);
+        return false;
+    }
+}
+
+async function deleteVehicleFromFirebase(vehicleId) {
+    const firebaseState = window.carInfoFirebase;
+    const vehicleDocument = getVehicleDocument(vehicleId);
+    const historyCollection = getHistoryCollectionForVehicle(vehicleId);
+
+    if (!firebaseState?.db || !vehicleDocument || !historyCollection) {
+        return false;
+    }
+
+    try {
+        const historySnapshot = await historyCollection.get();
+        const batch = firebaseState.db.batch();
+
+        historySnapshot.docs.forEach((documentSnapshot) => {
+            batch.delete(documentSnapshot.ref);
+        });
+        batch.delete(vehicleDocument);
+        await batch.commit();
+        return true;
+    } catch (error) {
+        console.error(`Unable to delete Firebase vehicle ${vehicleId}.`, error);
         return false;
     }
 }
@@ -2412,12 +2742,32 @@ function normalizeProfileSettings(profile) {
     };
 }
 
-function serializeProfileSettings(profile) {
+function serializeProfileSettings(profile, selectedVehicleFallback = "") {
     const normalizedProfile = normalizeProfileSettings(profile);
+    const selectedVehicleId =
+        normalizedProfile.selectedVehicleId ||
+        (typeof selectedVehicleFallback === "string"
+            ? selectedVehicleFallback
+            : "");
 
     return {
-        vehicles: normalizedProfile.vehicles.map((vehicle) => ({ ...vehicle })),
-        selectedVehicleId: normalizedProfile.selectedVehicleId,
+        selectedVehicleId,
+        updatedAt: Date.now(),
+        schemaVersion: 2,
+    };
+}
+
+function serializeVehicleProfileRecord(vehicle) {
+    const normalizedVehicle = normalizeVehicleProfile(vehicle);
+
+    if (!normalizedVehicle) {
+        return null;
+    }
+
+    const { id, ...vehicleData } = normalizedVehicle;
+
+    return {
+        ...vehicleData,
         updatedAt: Date.now(),
     };
 }

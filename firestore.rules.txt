@@ -5,7 +5,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isOwnProfile(userId) {
+    function isOwnUser(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
@@ -25,6 +25,19 @@ service cloud.firestore {
         request.resource.data.ownerUid == request.auth.uid;
     }
 
+    match /users/{userId} {
+      allow read, write: if isOwnUser(userId);
+
+      match /vehicles/{vehicleId} {
+        allow read, write: if isOwnUser(userId);
+
+        match /serviceHistory/{entryId} {
+          allow read, write: if isOwnUser(userId);
+        }
+      }
+    }
+
+    // Legacy paths kept temporarily so the app can migrate existing data.
     match /cars/{carId}/serviceHistory/{entryId} {
       allow create: if isWritingOwnHistory();
       allow read, delete: if isHistoryOwner();
@@ -32,7 +45,7 @@ service cloud.firestore {
     }
 
     match /cars/{carId}/profiles/{userId} {
-      allow read, write: if isOwnProfile(userId);
+      allow read, write: if isOwnUser(userId);
     }
   }
 }

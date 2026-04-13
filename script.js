@@ -770,20 +770,15 @@ function setupPlaceholderActions() {
 }
 
 function setupNavigation() {
-    navDashboard.addEventListener("click", () => {
-        setActiveView("dashboard");
-    });
-
-    navHistory.addEventListener("click", () => {
-        setActiveView("history");
-    });
-
-    navProfile.addEventListener("click", () => {
-        setActiveView("profile");
-    });
-
-    openHistoryViewButton.addEventListener("click", () => {
-        setActiveView("history");
+    [
+        [navDashboard, "dashboard"],
+        [navHistory, "history"],
+        [navProfile, "profile"],
+        [openHistoryViewButton, "history"],
+    ].forEach(([button, view]) => {
+        button?.addEventListener("click", () => {
+            setActiveView(view);
+        });
     });
 }
 

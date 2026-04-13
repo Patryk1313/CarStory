@@ -1,7 +1,7 @@
 PLAN DZIALANIA APLIKACJI CARSTORY
 
 1. OGOLNE DZIALANIE
-- Aplikacja obsluguje jeden samochod i pokazuje jego podstawowe dane, statusy serwisowe, liste rzeczy do zrobienia oraz historie serwisowa.
+- Aplikacja obsluguje liste pojazdow i pokazuje dane aktualnie wybranego auta, statusy serwisowe, liste rzeczy do zrobienia oraz historie serwisowa.
 - Historia serwisowa jest zapisywana do Firebase Firestore.
 - Gdy Firebase chwilowo nie odpowiada, aplikacja korzysta z lokalnego cache, zeby dane nie znikaly z ekranu.
 - Podstrona "Historia" sluzy do zarzadzania wpisami: mozna tam dodawac, edytowac i usuwac wpisy serwisowe.
@@ -44,10 +44,10 @@ Czesci (przycisk w navbar)
 - Po kliknieciu pokazuje informacje, ze sekcja czesci jest w przygotowaniu.
 - Docelowo bedzie przechowywala liste czesci zamontowanych w aucie, producentow, numerow katalogowych i terminow wymiany.
 
-Profil (przycisk w navbar)
-- Na ten moment jest to placeholder.
-- Po kliknieciu pokazuje informacje, ze profil jest w przygotowaniu.
-- Docelowo moze zawierac dane wlasciciela, ustawienia konta, eksport danych i preferencje aplikacji.
+Pojazdy (przycisk w navbar)
+- Otwiera widok zarzadzania pojazdami.
+- Pozwala wybrac aktywny pojazd, dodac nowy i usunac istniejacy.
+- Z tego miejsca mozna tez zalogowac sie do Firebase i wylogowac.
 
 3. PODSTRONA HISTORIA
 - Wyswietla pelna liste wpisow serwisowych.

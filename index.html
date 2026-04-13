@@ -10,6 +10,30 @@
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
             rel="stylesheet"
         />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="favicon-pack/apple-touch-icon.png"
+        />
+        <link rel="icon" type="image/x-icon" href="favicon-pack/favicon.ico" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="favicon-pack/favicon-32x32.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="favicon-pack/favicon-16x16.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="192x192"
+            href="favicon-pack/favicon-192x192.png"
+        />
         <link rel="stylesheet" href="styles.css" />
     </head>
     <body>
@@ -138,13 +162,13 @@
                     >
                         <header class="section-header">
                             <div class="section-heading">
-                                <h2 id="history-manage-title">
+                                <!-- <h2 id="history-manage-title">
                                     Wszystkie wpisy
                                 </h2>
                                 <p class="section-subtitle">
                                     Z tego miejsca zmienisz lub usuniesz wpis z
                                     historii serwisowej.
-                                </p>
+                                </p> -->
                             </div>
                             <span
                                 id="history-count"
@@ -171,52 +195,6 @@
                     hidden
                 >
                     <section
-                        id="profile-editor-card"
-                        class="profile-card profile-card--editor"
-                        aria-labelledby="profile-settings-title"
-                    >
-                        <header class="section-header">
-                            <div class="section-heading">
-                                <h2 id="profile-settings-title">
-                                    Dane właściciela
-                                </h2>
-                            </div>
-                            <span
-                                id="profile-settings-badge"
-                                class="summary-pill"
-                            >
-                                Lokalnie
-                            </span>
-                        </header>
-
-                        <form id="profile-form" class="profile-form">
-                            <div class="profile-form__grid">
-                                <label class="field">
-                                    <span class="field__label">
-                                        Imię i nazwisko
-                                    </span>
-                                    <input
-                                        id="profile-name"
-                                        class="service-input"
-                                        type="text"
-                                        maxlength="60"
-                                        placeholder="Np. Patryk"
-                                        autocomplete="off"
-                                    />
-                                </label>
-                            </div>
-
-                            <button
-                                id="profile-save-button"
-                                class="profile-save"
-                                type="submit"
-                            >
-                                Zapisz profil
-                            </button>
-                        </form>
-                    </section>
-
-                    <section
                         id="profile-vehicles-card"
                         class="profile-card profile-card--vehicles"
                         aria-labelledby="profile-vehicles-title"
@@ -226,7 +204,7 @@
                                 <h2 id="profile-vehicles-title">Pojazdy</h2>
                                 <p class="section-subtitle">
                                     Wybierz aktywne auto lub motocykl i
-                                    zarządzaj wszystkimi profilami pojazdów.
+                                    zarządzaj wszystkimi zapisanymi pojazdami.
                                 </p>
                             </div>
                             <span
@@ -269,153 +247,236 @@
                             class="vehicle-dropdown"
                         >
                             <summary class="vehicle-dropdown__summary">
-                                <span class="vehicle-dropdown__title">
-                                    Dodaj pojazd
-                                </span>
+                                <div class="vehicle-dropdown__summary-copy">
+                                    <span class="vehicle-dropdown__title">
+                                        Dodaj pojazd
+                                    </span>
+                                    <p class="vehicle-dropdown__summary-text">
+                                        Podstawowe dane i opcjonalny serwis
+                                        startowy.
+                                    </p>
+                                </div>
                                 <span class="vehicle-dropdown__hint">
                                     Rozwiń formularz
                                 </span>
                             </summary>
 
                             <div class="vehicle-dropdown__content">
-                                <form id="vehicle-form" class="profile-form">
-                                    <div class="profile-form__grid">
-                                        <label class="field">
-                                            <span class="field__label">
-                                                Typ pojazdu
-                                            </span>
-                                            <select
-                                                id="vehicle-type"
-                                                class="service-input"
-                                            >
-                                                <option value="Auto">
-                                                    Auto
-                                                </option>
-                                                <option value="Motocykl">
-                                                    Motocykl
-                                                </option>
-                                            </select>
-                                        </label>
-
-                                        <label class="field">
-                                            <span class="field__label">
-                                                Nazwa pojazdu
-                                            </span>
-                                            <input
-                                                id="vehicle-name"
-                                                class="service-input"
-                                                type="text"
-                                                maxlength="60"
-                                                placeholder="Np. SEAT Ibiza"
-                                                autocomplete="off"
-                                            />
-                                        </label>
-
-                                        <label class="field">
-                                            <span class="field__label"
-                                                >Rok</span
-                                            >
-                                            <input
-                                                id="vehicle-year"
-                                                class="service-input"
-                                                type="text"
-                                                maxlength="4"
-                                                placeholder="Np. 2007"
-                                                inputmode="numeric"
-                                                autocomplete="off"
-                                            />
-                                        </label>
-
-                                        <label class="field">
-                                            <span class="field__label">
-                                                Silnik / opis
-                                            </span>
-                                            <input
-                                                id="vehicle-engine"
-                                                class="service-input"
-                                                type="text"
-                                                maxlength="40"
-                                                placeholder="Np. 1.9 TDI"
-                                                autocomplete="off"
-                                            />
-                                        </label>
-
-                                        <label class="field field--full">
-                                            <span class="field__label">
-                                                Przebieg
-                                            </span>
-                                            <input
-                                                id="vehicle-mileage"
-                                                class="service-input"
-                                                type="number"
-                                                min="0"
-                                                step="1"
-                                                placeholder="Np. 208223"
-                                                inputmode="numeric"
-                                            />
-                                        </label>
-
-                                        <label class="field">
-                                            <span class="field__label">
-                                                Ostatnia wymiana oleju
-                                                (przebieg)
-                                            </span>
-                                            <input
-                                                id="vehicle-oil-mileage"
-                                                class="service-input"
-                                                type="number"
-                                                min="0"
-                                                step="1"
-                                                placeholder="Np. 198500"
-                                                inputmode="numeric"
-                                            />
-                                        </label>
-
-                                        <label class="field">
-                                            <span class="field__label">
-                                                Ostatnia wymiana oleju (data)
-                                            </span>
-                                            <input
-                                                id="vehicle-oil-date"
-                                                class="service-input"
-                                                type="date"
-                                            />
-                                        </label>
-
-                                        <label class="field">
-                                            <span class="field__label">
-                                                Napęd rozrządu (przebieg)
-                                            </span>
-                                            <input
-                                                id="vehicle-timing-mileage"
-                                                class="service-input"
-                                                type="number"
-                                                min="0"
-                                                step="1"
-                                                placeholder="Np. 165000"
-                                                inputmode="numeric"
-                                            />
-                                        </label>
-
-                                        <label class="field">
-                                            <span class="field__label">
-                                                Napęd rozrządu (data)
-                                            </span>
-                                            <input
-                                                id="vehicle-timing-date"
-                                                class="service-input"
-                                                type="date"
-                                            />
-                                        </label>
-                                    </div>
-
-                                    <button
-                                        id="vehicle-submit-button"
-                                        class="profile-save"
-                                        type="submit"
+                                <form
+                                    id="vehicle-form"
+                                    class="profile-form vehicle-form"
+                                >
+                                    <section
+                                        class="vehicle-form-section"
+                                        aria-labelledby="vehicle-basics-title"
                                     >
-                                        Dodaj pojazd
-                                    </button>
+                                        <div
+                                            class="vehicle-form-section__header"
+                                        >
+                                            <h3
+                                                id="vehicle-basics-title"
+                                                class="vehicle-form-section__title"
+                                            >
+                                                Dane podstawowe
+                                            </h3>
+                                            <p
+                                                class="vehicle-form-section__text"
+                                            >
+                                                Dane widoczne na dashboardzie i
+                                                liście pojazdów.
+                                            </p>
+                                        </div>
+
+                                        <div
+                                            class="profile-form__grid vehicle-form__grid vehicle-form__grid--basics"
+                                        >
+                                            <label class="field vehicle-form__field">
+                                                <span class="field__label">
+                                                    Typ pojazdu
+                                                </span>
+                                                <select
+                                                    id="vehicle-type"
+                                                    class="service-input"
+                                                    required
+                                                >
+                                                    <option value="Auto">
+                                                        Auto
+                                                    </option>
+                                                    <option value="Motocykl">
+                                                        Motocykl
+                                                    </option>
+                                                </select>
+                                            </label>
+
+                                            <label class="field vehicle-form__field field--full">
+                                                <span class="field__label">
+                                                    Nazwa pojazdu
+                                                </span>
+                                                <input
+                                                    id="vehicle-name"
+                                                    class="service-input"
+                                                    type="text"
+                                                    maxlength="60"
+                                                    placeholder="Np. SEAT Ibiza"
+                                                    autocomplete="off"
+                                                    required
+                                                />
+                                            </label>
+
+                                            <label class="field vehicle-form__field">
+                                                <span class="field__label"
+                                                    >Rok</span
+                                                >
+                                                <input
+                                                    id="vehicle-year"
+                                                    class="service-input"
+                                                    type="text"
+                                                    maxlength="4"
+                                                    placeholder="Np. 2007"
+                                                    inputmode="numeric"
+                                                    autocomplete="off"
+                                                    required
+                                                />
+                                            </label>
+
+                                            <label class="field vehicle-form__field">
+                                                <span class="field__label">
+                                                    Silnik / opis
+                                                </span>
+                                                <input
+                                                    id="vehicle-engine"
+                                                    class="service-input"
+                                                    type="text"
+                                                    maxlength="40"
+                                                    placeholder="Np. 1.9 TDI"
+                                                    autocomplete="off"
+                                                    required
+                                                />
+                                            </label>
+
+                                            <label class="field field--full vehicle-form__field">
+                                                <span class="field__label">
+                                                    Przebieg
+                                                </span>
+                                                <input
+                                                    id="vehicle-mileage"
+                                                    class="service-input"
+                                                    type="number"
+                                                    min="0"
+                                                    step="1"
+                                                    placeholder="Np. 208223"
+                                                    inputmode="numeric"
+                                                    required
+                                                />
+                                            </label>
+                                        </div>
+                                    </section>
+
+                                    <section
+                                        class="vehicle-form-section"
+                                        aria-labelledby="vehicle-service-title"
+                                    >
+                                        <div
+                                            class="vehicle-form-section__header"
+                                        >
+                                            <h3
+                                                id="vehicle-service-title"
+                                                class="vehicle-form-section__title"
+                                            >
+                                                Serwis początkowy
+                                            </h3>
+                                        </div>
+
+                                        <div class="vehicle-form-service-grid">
+                                            <div class="vehicle-form-service-card">
+                                                <p
+                                                    class="vehicle-form-service-card__title"
+                                                >
+                                                    Olej silnikowy
+                                                </p>
+                                                <div
+                                                    class="vehicle-form-service-fields"
+                                                >
+                                                    <label class="field vehicle-form__field">
+                                                        <span class="field__label">
+                                                            Ostatni przebieg
+                                                        </span>
+                                                        <input
+                                                            id="vehicle-oil-mileage"
+                                                            class="service-input"
+                                                            type="number"
+                                                            min="0"
+                                                            step="1"
+                                                            placeholder="Np. 198500"
+                                                            inputmode="numeric"
+                                                            required
+                                                        />
+                                                    </label>
+
+                                                    <label class="field vehicle-form__field">
+                                                        <span class="field__label">
+                                                            Data wymiany
+                                                        </span>
+                                                        <input
+                                                            id="vehicle-oil-date"
+                                                            class="service-input"
+                                                            type="date"
+                                                            required
+                                                        />
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div class="vehicle-form-service-card">
+                                                <p
+                                                    class="vehicle-form-service-card__title"
+                                                >
+                                                    Napęd rozrządu
+                                                </p>
+                                                <div
+                                                    class="vehicle-form-service-fields"
+                                                >
+                                                    <label class="field vehicle-form__field">
+                                                        <span class="field__label">
+                                                            Ostatni przebieg
+                                                        </span>
+                                                        <input
+                                                            id="vehicle-timing-mileage"
+                                                            class="service-input"
+                                                            type="number"
+                                                            min="0"
+                                                            step="1"
+                                                            placeholder="Np. 165000"
+                                                            inputmode="numeric"
+                                                            required
+                                                        />
+                                                    </label>
+
+                                                    <label class="field vehicle-form__field">
+                                                        <span class="field__label">
+                                                            Data wymiany
+                                                        </span>
+                                                        <input
+                                                            id="vehicle-timing-date"
+                                                            class="service-input"
+                                                            type="date"
+                                                            required
+                                                        />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    <div class="vehicle-form__footer">
+                                        <button
+                                            id="vehicle-submit-button"
+                                            class="profile-save vehicle-form__submit"
+                                            type="submit"
+                                        >
+                                            Dodaj pojazd
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </details>
@@ -478,11 +539,11 @@
                                 Email / hasło
                             </p>
                             <h2 id="auth-card-title" class="auth-card__title">
-                                Logowanie do chmury
+                                Logowanie
                             </h2>
                             <p id="auth-status-text" class="auth-card__text">
-                                Zaloguj się, aby synchronizować profil i
-                                historię serwisową w Firebase.
+                                Zaloguj się, aby synchronizować pojazdy i
+                                historię serwisową.
                             </p>
                             <p id="auth-user-hint" class="auth-card__hint"></p>
                         </div>
@@ -728,7 +789,7 @@
                         <path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
                         <path d="M5 20a7 7 0 0 1 14 0" />
                     </svg>
-                    <span>Profil</span>
+                    <span>Pojazdy</span>
                 </button>
             </nav>
         </div>

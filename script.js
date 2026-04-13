@@ -123,14 +123,7 @@ const authSignOutButton = document.getElementById("auth-sign-out-button");
 const authModal = document.getElementById("auth-modal");
 const openAuthModalButton = document.getElementById("open-auth-modal-button");
 const closeAuthModalButton = document.getElementById("close-auth-modal-button");
-const profileSettingsBadge = document.getElementById("profile-settings-badge");
-const profileEditorCard = document.getElementById("profile-editor-card");
 const profileVehiclesCard = document.getElementById("profile-vehicles-card");
-const profileForm = document.getElementById("profile-form");
-const profileNameInput = document.getElementById("profile-name");
-const profilePhoneInput = document.getElementById("profile-phone");
-const profileSaveButton = document.getElementById("profile-save-button");
-const profileSaveHint = document.getElementById("profile-save-hint");
 const profileVehiclesCount = document.getElementById("profile-vehicles-count");
 const profileVehiclesTotal = document.getElementById("profile-vehicles-total");
 const profileVehicleSelect = document.getElementById("profile-vehicle-select");
@@ -185,7 +178,6 @@ let editingHistoryEntryId = null;
 let currentUser = null;
 let authReady = false;
 let authBusy = false;
-let profileBusy = false;
 let profileSyncMode = "local";
 let hasShownHistorySyncError = false;
 let hasShownProfileSyncError = false;
@@ -200,7 +192,7 @@ function renderHeader() {
 
     if (selectedVehicle.isPlaceholder) {
         carName.textContent = selectedVehicle.name;
-        carYear.textContent = "Profil";
+        carYear.textContent = "Pojazdy";
         carEngine.textContent = "Brak aktywnego pojazdu";
         document.title = "Car Info";
         return;
@@ -227,7 +219,7 @@ function renderStatuses() {
                     <span class="status-card__value-unit">auto</span>
                 </div>
                 <div class="status-card__next">
-                    <span class="status-card__next-label">Przejdź do<br>Profilu</span>
+                    <span class="status-card__next-label">Przejdź do<br>Pojazdów</span>
                     <span class="status-card__next-badge">Teraz</span>
                 </div>
             </article>
@@ -250,7 +242,7 @@ function renderStatuses() {
             return `
         <article class="status-card status-card--${item.theme}">
             <div class="status-card__top">
-                <span class="status-card__icon" aria-hidden="true">${getStatusIcon(item.kind)}</span>
+                ${getStatusIcon(item.kind)}
                 <p class="status-card__label">${item.label}</p>
             </div>
             <div class="status-card__value">
@@ -378,7 +370,7 @@ function renderTimeline() {
     if (!hasActiveVehicle()) {
         timeline.innerHTML = `
             <li class="timeline-item">
-                <p class="timeline-item__description">Dodaj pojazd w Profilu, aby rozpocząć historię serwisową.</p>
+                <p class="timeline-item__description">Dodaj pojazd w sekcji Pojazdy, aby rozpocząć historię serwisową.</p>
             </li>
         `;
         return;
@@ -419,7 +411,7 @@ function renderHistoryPage() {
         : "0 wpisów";
     historyPageEmpty.textContent = hasVehicle
         ? "Brak wpisów w historii serwisowej."
-        : "Dodaj pojazd w Profilu, aby rozpocząć historię serwisową.";
+        : "Dodaj pojazd w sekcji Pojazdy, aby rozpocząć historię serwisową.";
     historyPageEmpty.hidden = hasVehicle ? historyEntries.length !== 0 : false;
     historyPageList.hidden = !hasVehicle || historyEntries.length === 0;
 
@@ -491,19 +483,10 @@ function renderTodos() {
 }
 
 function renderProfileSummary() {
-    const syncMode = getCurrentProfileSyncMode();
-    const syncPresentation = getProfileSyncPresentation(syncMode);
     const selectedVehicle = getSelectedVehicle();
     const vehicles = getProfileVehicles();
 
     renderVehicleManager(vehicles, selectedVehicle.id);
-
-    if (profileSettingsBadge) {
-        profileSettingsBadge.textContent = syncPresentation.badge;
-        profileSettingsBadge.dataset.syncMode = syncMode;
-    }
-
-    setProfileFormBusy(profileBusy);
 }
 
 function renderVehicleManager(vehicles, selectedVehicleId) {
@@ -578,34 +561,6 @@ function renderVehicleManager(vehicles, selectedVehicleId) {
         .join("");
 }
 
-function fillProfileForm() {
-    if (!profileNameInput || !profilePhoneInput) {
-        return;
-    }
-
-    profileNameInput.value = profileSettings.name || getAuthUserLabel() || "";
-    profilePhoneInput.value = profileSettings.phone;
-}
-
-function setProfileFormBusy(isBusy) {
-    profileBusy = isBusy;
-
-    if (!profileSaveButton) {
-        return;
-    }
-
-    profileSaveButton.disabled = isBusy;
-
-    if (isBusy) {
-        profileSaveButton.textContent = "Zapisywanie...";
-        return;
-    }
-
-    profileSaveButton.textContent = currentUser
-        ? "Zapisz i zsynchronizuj"
-        : "Zapisz szkic";
-}
-
 function showToast(message) {
     window.clearTimeout(toastTimeoutId);
     toast.textContent = message;
@@ -661,7 +616,7 @@ function updateAuthUi() {
 
     if (!authAvailable) {
         authStatusText.textContent =
-            "Firebase Auth nie jest dostępny. Profil i historia działają tylko lokalnie.";
+            "Firebase Auth nie jest dostępny. Pojazdy i historia działają tylko lokalnie.";
         authUserHint.textContent = "";
         if (authForm) {
             authForm.hidden = true;
@@ -698,7 +653,7 @@ function updateAuthUi() {
     if (isAuthenticated) {
         closeAuthModal();
         authStatusText.textContent =
-            "Profil i historia serwisowa są synchronizowane z Firebase dla zalogowanego użytkownika.";
+            "Pojazdy i historia serwisowa są synchronizowane z Firebase dla zalogowanego użytkownika.";
         authUserHint.textContent = currentUser.email
             ? `Zalogowano jako ${currentUser.email}`
             : `Zalogowano. UID: ${currentUser.uid}`;
@@ -713,9 +668,9 @@ function updateAuthUi() {
     }
 
     authStatusText.textContent =
-        "Zaloguj się, aby odblokować pełny Profil i synchronizację danych w Firebase.";
+        "Zaloguj się, aby synchronizować pojazdy i historię serwisową w Firebase.";
     authUserHint.textContent =
-        "Po zalogowaniu zobaczysz dane właściciela, ustawienia auta i synchronizację historii serwisowej.";
+        "Po zalogowaniu zsynchronizujesz listę pojazdów i historię serwisową między urządzeniami.";
     if (authForm) {
         authForm.hidden = false;
     }
@@ -733,10 +688,6 @@ function updateProfileViewState({ isAuthenticated, authAvailable }) {
         "profile-view--authenticated",
         isAuthenticated,
     );
-
-    if (profileEditorCard) {
-        profileEditorCard.hidden = false;
-    }
 
     if (profileVehiclesCard) {
         profileVehiclesCard.hidden = false;
@@ -836,42 +787,12 @@ function setupFirebaseAuth() {
         historyEntries = loadHistoryCache();
         authReady = true;
         authBusy = false;
-        profileBusy = false;
         hasShownHistorySyncError = false;
         hasShownProfileSyncError = false;
         updateAuthUi();
         refreshVehicleContext();
         restartHistorySync();
         restartProfileSync();
-    });
-}
-
-function setupProfileActions() {
-    if (!profileForm) {
-        return;
-    }
-
-    profileForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const nextProfileSettings = {
-            ...profileSettings,
-            name: normalizeText(profileNameInput?.value || "", 60),
-            phone: normalizeText(profilePhoneInput?.value || "", 30),
-            updatedAt: Date.now(),
-        };
-
-        setProfileFormBusy(true);
-        const savedTo = await persistProfileSettings(nextProfileSettings);
-        setProfileFormBusy(false);
-        fillProfileForm();
-        renderProfileSummary();
-
-        if (profileSaveHint) {
-            profileSaveHint.textContent = getProfileSaveHint(savedTo);
-        }
-
-        showToast(getProfileSaveToast(savedTo));
     });
 }
 
@@ -982,7 +903,7 @@ async function addVehicleProfile() {
     }
     showToast(
         savedTo === "firebase"
-            ? "Dodano nowy pojazd do profilu."
+            ? "Dodano nowy pojazd."
             : "Dodano pojazd lokalnie.",
     );
 }
@@ -995,7 +916,7 @@ async function deleteVehicleProfile(vehicleId) {
         return;
     }
 
-    if (!window.confirm(`Usunąć profil pojazdu "${vehicle.name}"?`)) {
+    if (!window.confirm(`Usunąć pojazd "${vehicle.name}"?`)) {
         return;
     }
 
@@ -1019,8 +940,8 @@ async function deleteVehicleProfile(vehicleId) {
     showToast(
         savedTo === "firebase"
             ? remainingVehicles.length
-                ? "Usunięto profil pojazdu."
-                : "Usunięto ostatni pojazd z profilu."
+                ? "Usunięto pojazd."
+                : "Usunięto ostatni pojazd."
             : remainingVehicles.length
               ? "Usunięto pojazd lokalnie."
               : "Usunięto ostatni pojazd lokalnie.",
@@ -1136,7 +1057,9 @@ function requireAuthenticatedHistoryAccess() {
     }
 
     if (currentUser && !hasActiveVehicle()) {
-        showToast("Dodaj pojazd w Profilu, aby prowadzić historię serwisową.");
+        showToast(
+            "Dodaj pojazd w sekcji Pojazdy, aby prowadzić historię serwisową.",
+        );
         setActiveView("profile");
         if (vehicleFormDropdown) {
             vehicleFormDropdown.open = true;
@@ -1196,7 +1119,6 @@ function refreshVehicleContext({ restartHistory = false } = {}) {
     renderStatuses();
     renderTimeline();
     renderHistoryPage();
-    fillProfileForm();
 
     if (restartHistory) {
         restartHistorySync();
@@ -1642,7 +1564,7 @@ function syncProfileWithFirebase() {
 
             if (!hasShownProfileSyncError) {
                 showToast(
-                    "Profil działa z pamięci urządzenia. Synchronizacja z Firebase nie odpowiedziała.",
+                    "Dane pojazdów działają z pamięci urządzenia. Synchronizacja z Firebase nie odpowiedziała.",
                 );
                 hasShownProfileSyncError = true;
             }
@@ -2219,8 +2141,6 @@ function createEmptyProfileSettings() {
         : [];
 
     return {
-        name: "",
-        phone: "",
         vehicles: defaultVehicles,
         selectedVehicleId: defaultVehicles[0]?.id || "",
         updatedAt: 0,
@@ -2251,8 +2171,6 @@ function normalizeProfileSettings(profile) {
             : normalizedVehicles[0]?.id || "";
 
     return {
-        name: normalizeText(profile.name, 60),
-        phone: normalizeText(profile.phone, 30),
         vehicles: normalizedVehicles,
         selectedVehicleId,
         updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0,
@@ -2263,8 +2181,6 @@ function serializeProfileSettings(profile) {
     const normalizedProfile = normalizeProfileSettings(profile);
 
     return {
-        name: normalizedProfile.name,
-        phone: normalizedProfile.phone,
         vehicles: normalizedProfile.vehicles.map((vehicle) => ({ ...vehicle })),
         selectedVehicleId: normalizedProfile.selectedVehicleId,
         updatedAt: Date.now(),
@@ -2274,11 +2190,7 @@ function serializeProfileSettings(profile) {
 function hasProfileContent(profile) {
     const normalizedProfile = normalizeProfileSettings(profile);
 
-    return Boolean(
-        normalizedProfile.name ||
-        normalizedProfile.phone ||
-        normalizedProfile.vehicles.length,
-    );
+    return normalizedProfile.vehicles.length > 0;
 }
 
 function createDefaultVehicleProfile() {
@@ -2467,51 +2379,55 @@ function readVehicleFormValues() {
         return null;
     }
 
+    if (!year) {
+        showToast("Wpisz rok pojazdu.");
+        vehicleYearInput?.focus();
+        return null;
+    }
+
+    if (!engine) {
+        showToast("Wpisz silnik lub opis pojazdu.");
+        vehicleEngineInput?.focus();
+        return null;
+    }
+
     if (!Number.isFinite(mileage) || mileage < 0) {
         showToast("Podaj prawidłowy przebieg pojazdu.");
         vehicleMileageInput?.focus();
         return null;
     }
 
-    if (
-        (oilChangeMileageRaw && !oilChangeDate) ||
-        (!oilChangeMileageRaw && oilChangeDate)
-    ) {
-        showToast("Uzupełnij komplet danych dla ostatniej wymiany oleju.");
-        if (!oilChangeMileageRaw) {
-            vehicleOilMileageInput?.focus();
-        } else {
-            vehicleOilDateInput?.focus();
-        }
+    if (!oilChangeMileageRaw) {
+        showToast("Podaj przebieg ostatniej wymiany oleju.");
+        vehicleOilMileageInput?.focus();
         return null;
     }
 
-    if (
-        oilChangeMileageRaw &&
-        (!Number.isFinite(oilChangeMileage) || oilChangeMileage < 0)
-    ) {
+    if (!oilChangeDate) {
+        showToast("Podaj datę ostatniej wymiany oleju.");
+        vehicleOilDateInput?.focus();
+        return null;
+    }
+
+    if (!Number.isFinite(oilChangeMileage) || oilChangeMileage < 0) {
         showToast("Podaj prawidłowy przebieg dla wymiany oleju.");
         vehicleOilMileageInput?.focus();
         return null;
     }
 
-    if (
-        (timingDriveMileageRaw && !timingDriveDate) ||
-        (!timingDriveMileageRaw && timingDriveDate)
-    ) {
-        showToast("Uzupełnij komplet danych dla napędu rozrządu.");
-        if (!timingDriveMileageRaw) {
-            vehicleTimingMileageInput?.focus();
-        } else {
-            vehicleTimingDateInput?.focus();
-        }
+    if (!timingDriveMileageRaw) {
+        showToast("Podaj przebieg dla napędu rozrządu.");
+        vehicleTimingMileageInput?.focus();
         return null;
     }
 
-    if (
-        timingDriveMileageRaw &&
-        (!Number.isFinite(timingDriveMileage) || timingDriveMileage < 0)
-    ) {
+    if (!timingDriveDate) {
+        showToast("Podaj datę wymiany napędu rozrządu.");
+        vehicleTimingDateInput?.focus();
+        return null;
+    }
+
+    if (!Number.isFinite(timingDriveMileage) || timingDriveMileage < 0) {
         showToast("Podaj prawidłowy przebieg dla napędu rozrządu.");
         vehicleTimingMileageInput?.focus();
         return null;
@@ -2532,122 +2448,6 @@ function readVehicleFormValues() {
             : null,
         timingDriveDate,
     };
-}
-
-function getCurrentProfileSyncMode() {
-    const firebaseState = window.carInfoFirebase;
-
-    if (profileBusy) {
-        return "syncing";
-    }
-
-    if (!firebaseState || !firebaseState.auth || !firebaseState.db) {
-        return "local";
-    }
-
-    if (!authReady) {
-        return "syncing";
-    }
-
-    if (!currentUser) {
-        return "guest";
-    }
-
-    return profileSyncMode;
-}
-
-function getProfileSyncPresentation(mode) {
-    if (mode === "firebase") {
-        return {
-            pill: "Firebase",
-            badge: "W chmurze",
-            storage: "W chmurze",
-            caption: "Synchronizacja aktywna",
-            hero: "Twoje ustawienia właściciela i historia serwisowa są zsynchronizowane z Firebase.",
-        };
-    }
-
-    if (mode === "syncing") {
-        return {
-            pill: "Łączenie",
-            badge: "Łączenie...",
-            storage: "Łączenie...",
-            caption: "Trwa synchronizacja",
-            hero: "Łączę konto i pobieram najnowsze dane profilu z Firebase.",
-        };
-    }
-
-    if (mode === "error") {
-        return {
-            pill: "Błąd sync",
-            badge: "Lokalny fallback",
-            storage: "Pamięć lokalna",
-            caption: "Ostatnia synchronizacja nieudana",
-            hero: "Ostatnia synchronizacja się nie udała. Lokalne dane profilu pozostały bez zmian.",
-        };
-    }
-
-    if (mode === "guest") {
-        return {
-            pill: "Szkic",
-            badge: "Lokalny szkic",
-            storage: "Po zalogowaniu do chmury",
-            caption: "Szkic lokalny",
-            hero: "Możesz przygotować szkic profilu lokalnie, a po zalogowaniu zsynchronizować go z Firebase.",
-        };
-    }
-
-    return {
-        pill: "Lokalnie",
-        badge: "To urządzenie",
-        storage: "To urządzenie",
-        caption: "Tryb lokalny",
-        hero: "Firebase nie jest dostępny, więc profil działa wyłącznie lokalnie na tym urządzeniu.",
-    };
-}
-
-function getAuthUserLabel() {
-    if (currentUser?.displayName) {
-        return currentUser.displayName;
-    }
-
-    if (currentUser?.email) {
-        return currentUser.email.split("@")[0] || currentUser.email;
-    }
-
-    return "";
-}
-
-function getProfileSaveToast(mode) {
-    if (mode === "firebase") {
-        return "Profil zsynchronizowany z Firebase.";
-    }
-
-    if (mode === "error") {
-        return "Profil zapisany lokalnie. Synchronizacja z Firebase nie powiodła się.";
-    }
-
-    if (mode === "guest") {
-        return "Zapisano szkic profilu. Zaloguj się, aby go zsynchronizować.";
-    }
-
-    return "Profil zapisany lokalnie na tym urządzeniu.";
-}
-
-function getProfileSaveHint(mode) {
-    if (mode === "firebase") {
-        return "Profil został zapisany w Firebase i będzie dostępny także na innych urządzeniach.";
-    }
-
-    if (mode === "error") {
-        return "Profil zapisano lokalnie. Sprawdź połączenie albo reguły Firestore, aby wznowić synchronizację.";
-    }
-
-    if (mode === "guest") {
-        return "Szkic zapisano lokalnie. Po zalogowaniu profil zostanie wysłany do Firebase.";
-    }
-
-    return "Profil zapisano lokalnie na tym urządzeniu.";
 }
 
 function getCountLabel(count, labels) {
@@ -2735,22 +2535,16 @@ function escapeHtml(value) {
 function getStatusIcon(kind) {
     if (kind === "oil") {
         return `
-            <svg viewBox="0 0 24 24">
-                <path d="M4.5 13.5h12.75a2.25 2.25 0 0 0 0-4.5H13V7.25A2.25 2.25 0 0 0 10.75 5H8.5" />
-                <path d="M5 9h2.5" />
-                <path d="M7 13.5v2.25A1.25 1.25 0 0 0 8.25 17h5.5A1.25 1.25 0 0 0 15 15.75V13.5" />
-                <path d="M18 9.75c.83.9 1.5 1.88 1.5 2.78a1.5 1.5 0 1 1-3 0c0-.9.67-1.88 1.5-2.78Z" />
-            </svg>
+            <span class="status-card__icon status-card__icon--image" aria-hidden="true">
+                <img class="status-card__icon-image" src="engine-oil.png" alt="" />
+            </span>
         `;
     }
 
     return `
-        <svg viewBox="0 0 24 24">
-            <circle cx="7.5" cy="12" r="2.5" />
-            <circle cx="16.5" cy="12" r="2.5" />
-            <path d="M9.8 10h4.4a2 2 0 0 1 0 4H9.8a2 2 0 0 1 0-4Z" />
-            <path d="M7.5 12h9" />
-        </svg>
+        <span class="status-card__icon status-card__icon--image" aria-hidden="true">
+            <img class="status-card__icon-image" src="timing-belt.png" alt="" />
+        </span>
     `;
 }
 
@@ -2760,7 +2554,6 @@ function init() {
     renderTodos();
     renderTimeline();
     renderHistoryPage();
-    fillProfileForm();
     renderProfileSummary();
     resetServiceEntryFormFields();
     syncEntrySheetCopy();
@@ -2770,7 +2563,6 @@ function init() {
     setupAuthActions();
     setupFirebaseAuth();
     setupNavigation();
-    setupProfileActions();
     setupVehicleActions();
     setupTodoActions();
     setupHistoryActions();

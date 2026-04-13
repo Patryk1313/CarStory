@@ -171,10 +171,29 @@ const entryMileageInput = document.getElementById("entry-mileage");
 const entryTitleInput = document.getElementById("entry-title");
 const entryDescriptionInput = document.getElementById("entry-description");
 const entryCostInput = document.getElementById("entry-cost");
+const maintenanceSheet = document.getElementById("maintenance-sheet");
+const maintenanceSheetTitle = document.getElementById(
+    "maintenance-sheet-title",
+);
+const maintenanceSheetSubtitle = document.getElementById(
+    "maintenance-sheet-subtitle",
+);
+const closeMaintenanceSheetButton = document.getElementById(
+    "close-maintenance-sheet-button",
+);
+const maintenanceForm = document.getElementById("maintenance-form");
+const maintenanceMileageInput = document.getElementById(
+    "maintenance-mileage",
+);
+const maintenanceDateInput = document.getElementById("maintenance-date");
+const maintenanceFormSubmitButton = document.getElementById(
+    "maintenance-form-submit-button",
+);
 
 let toastTimeoutId = 0;
 let currentView = "dashboard";
 let editingHistoryEntryId = null;
+let editingMaintenanceKind = "";
 let currentUser = null;
 let authReady = false;
 let authBusy = false;
@@ -240,7 +259,12 @@ function renderStatuses() {
             );
 
             return `
-        <article class="status-card status-card--${item.theme}">
+        <button
+            class="status-card status-card--interactive status-card--${item.theme}"
+            type="button"
+            data-maintenance-kind="${item.kind}"
+            aria-label="Zaktualizuj dane serwisowe: ${escapeHtml(item.label)}"
+        >
             <div class="status-card__top">
                 ${getStatusIcon(item.kind)}
                 <p class="status-card__label">${item.label}</p>
@@ -256,7 +280,7 @@ function renderStatuses() {
                     ${statusPresentation.nextDateLabel ? `<span class="status-card__next-date">${statusPresentation.nextDateLabel}</span>` : ""}
                 </div>
             </div>
-        </article>
+        </button>
     `;
         })
         .join("");
@@ -364,6 +388,112 @@ function addYearsToIsoDate(value, yearsToAdd) {
     const nextDay = String(nextDate.getDate()).padStart(2, "0");
 
     return `${nextDate.getFullYear()}-${nextMonth}-${nextDay}`;
+}
+
+function getMaintenanceEditorConfig(kind) {
+    if (kind === "oil") {
+        return {
+            title: "Olej silnikowy",
+            subtitle:
+                "Zapisz przebieg i datę ostatniej wymiany oleju. Kolejny termin przeliczy się automatycznie.",
+            mileageKey: "oilChangeMileage",
+            dateKey: "oilChangeDate",
+            submitLabel: "Zapisz wymianę oleju",
+            successToast: "Zaktualizowano wymianę oleju.",
+            localToast: "Zaktualizowano wymianę oleju lokalnie.",
+        };
+    }
+
+    if (kind === "timing") {
+        return {
+            title: "Napęd rozrządu",
+            subtitle:
+                "Zapisz przebieg i datę wymiany napędu rozrządu. Kolejny termin przeliczy się automatycznie.",
+            mileageKey: "timingDriveMileage",
+            dateKey: "timingDriveDate",
+            submitLabel: "Zapisz wymianę rozrządu",
+            successToast: "Zaktualizowano wymianę rozrządu.",
+            localToast: "Zaktualizowano wymianę rozrządu lokalnie.",
+        };
+    }
+
+    return null;
+}
+
+function syncMaintenanceSheetCopy() {
+    if (!maintenanceSheetTitle || !maintenanceSheetSubtitle) {
+        return;
+    }
+
+    const config = getMaintenanceEditorConfig(editingMaintenanceKind);
+
+    maintenanceSheetTitle.textContent = config
+        ? config.title
+        : "Aktualizuj serwis";
+    maintenanceSheetSubtitle.textContent = config
+        ? config.subtitle
+        : "Zapisz przebieg i datę ostatniej wymiany. Następny termin przeliczy się automatycznie.";
+}
+
+function setMaintenanceFormBusy(isBusy) {
+    if (!maintenanceFormSubmitButton) {
+        return;
+    }
+
+    const config = getMaintenanceEditorConfig(editingMaintenanceKind);
+
+    maintenanceFormSubmitButton.disabled = isBusy;
+    maintenanceFormSubmitButton.textContent = isBusy
+        ? "Zapisywanie..."
+        : config?.submitLabel || "Zapisz zmiany";
+}
+
+function syncSheetOpenState() {
+    const hasOpenSheet =
+        Boolean(entrySheet && !entrySheet.hidden) ||
+        Boolean(maintenanceSheet && !maintenanceSheet.hidden);
+
+    document.body.classList.toggle("sheet-open", hasOpenSheet);
+}
+
+function openMaintenanceSheet(kind) {
+    const config = getMaintenanceEditorConfig(kind);
+
+    if (!maintenanceSheet || !config || !hasActiveVehicle()) {
+        return;
+    }
+
+    const selectedVehicle = getSelectedVehicle();
+
+    editingMaintenanceKind = kind;
+    syncMaintenanceSheetCopy();
+    setMaintenanceFormBusy(false);
+    maintenanceMileageInput.value = Number.isFinite(selectedVehicle[config.mileageKey])
+        ? String(selectedVehicle[config.mileageKey])
+        : "";
+    maintenanceDateInput.value = selectedVehicle[config.dateKey] || "";
+    maintenanceSheet.hidden = false;
+    syncSheetOpenState();
+
+    window.requestAnimationFrame(() => {
+        maintenanceMileageInput?.focus();
+    });
+}
+
+function closeMaintenanceSheet({ reset = false } = {}) {
+    if (!maintenanceSheet) {
+        return;
+    }
+
+    maintenanceSheet.hidden = true;
+    syncSheetOpenState();
+
+    if (reset) {
+        editingMaintenanceKind = "";
+        maintenanceForm?.reset();
+        syncMaintenanceSheetCopy();
+        setMaintenanceFormBusy(false);
+    }
 }
 
 function renderTimeline() {
@@ -730,6 +860,92 @@ function setupNavigation() {
         button?.addEventListener("click", () => {
             setActiveView(view);
         });
+    });
+}
+
+function setupMaintenanceActions() {
+    statusGrid?.addEventListener("click", (event) => {
+        const maintenanceCard = event.target.closest("[data-maintenance-kind]");
+
+        if (!maintenanceCard) {
+            return;
+        }
+
+        openMaintenanceSheet(maintenanceCard.dataset.maintenanceKind);
+    });
+
+    closeMaintenanceSheetButton?.addEventListener("click", () => {
+        closeMaintenanceSheet({ reset: true });
+    });
+
+    document
+        .querySelectorAll("[data-close-maintenance-sheet]")
+        .forEach((button) => {
+            button.addEventListener("click", () => {
+                closeMaintenanceSheet({ reset: true });
+            });
+        });
+
+    maintenanceForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const config = getMaintenanceEditorConfig(editingMaintenanceKind);
+
+        if (!config || !hasActiveVehicle()) {
+            return;
+        }
+
+        if (!maintenanceForm.reportValidity()) {
+            return;
+        }
+
+        const mileage = Number(maintenanceMileageInput?.value || 0);
+        const date = normalizeIsoDate(maintenanceDateInput?.value || "");
+
+        if (!Number.isFinite(mileage) || mileage < 0) {
+            showToast("Podaj prawidłowy przebieg wymiany.");
+            maintenanceMileageInput?.focus();
+            return;
+        }
+
+        if (!date) {
+            showToast("Podaj prawidłową datę wymiany.");
+            maintenanceDateInput?.focus();
+            return;
+        }
+
+        const selectedVehicleId = getSelectedVehicleId();
+        const nextVehicles = getProfileVehicles().map((vehicle) =>
+            vehicle.id === selectedVehicleId
+                ? {
+                      ...vehicle,
+                      [config.mileageKey]: Math.round(mileage),
+                      [config.dateKey]: date,
+                  }
+                : vehicle,
+        );
+
+        setMaintenanceFormBusy(true);
+
+        const savedTo = await persistProfileSettings({
+            ...profileSettings,
+            vehicles: nextVehicles,
+            updatedAt: Date.now(),
+        });
+
+        setMaintenanceFormBusy(false);
+        closeMaintenanceSheet({ reset: true });
+        showToast(
+            savedTo === "firebase"
+                ? config.successToast
+                : config.localToast,
+        );
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && maintenanceSheet && !maintenanceSheet.hidden) {
+            closeMaintenanceSheet({ reset: true });
+        }
     });
 }
 
@@ -1389,7 +1605,7 @@ function openEntrySheet(entry = null) {
     }
 
     entrySheet.hidden = false;
-    document.body.classList.add("sheet-open");
+    syncSheetOpenState();
 
     window.requestAnimationFrame(() => {
         entryTitleInput.focus();
@@ -1398,7 +1614,7 @@ function openEntrySheet(entry = null) {
 
 function closeEntrySheet({ reset = false } = {}) {
     entrySheet.hidden = true;
-    document.body.classList.remove("sheet-open");
+    syncSheetOpenState();
 
     if (reset) {
         editingHistoryEntryId = null;
@@ -2563,6 +2779,7 @@ function init() {
     setupAuthActions();
     setupFirebaseAuth();
     setupNavigation();
+    setupMaintenanceActions();
     setupVehicleActions();
     setupTodoActions();
     setupHistoryActions();

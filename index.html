@@ -731,6 +731,99 @@
                 </section>
             </div>
 
+            <div id="maintenance-sheet" class="entry-sheet" hidden>
+                <button
+                    class="entry-sheet__backdrop"
+                    type="button"
+                    aria-label="Zamknij edycję serwisu"
+                    data-close-maintenance-sheet
+                ></button>
+                <section
+                    class="entry-sheet__panel"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="maintenance-sheet-title"
+                    aria-describedby="maintenance-sheet-subtitle"
+                >
+                    <div class="entry-sheet__handle" aria-hidden="true"></div>
+                    <header class="entry-sheet__header">
+                        <div class="entry-sheet__heading">
+                            <h2 id="maintenance-sheet-title">
+                                Aktualizuj serwis
+                            </h2>
+                            <p id="maintenance-sheet-subtitle">
+                                Zapisz przebieg i datę ostatniej wymiany.
+                                Następny termin przeliczy się automatycznie.
+                            </p>
+                        </div>
+                        <button
+                            id="close-maintenance-sheet-button"
+                            class="entry-sheet__close"
+                            type="button"
+                            aria-label="Zamknij edycję serwisu"
+                            data-close-maintenance-sheet
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M6 6 18 18" />
+                                <path d="m18 6-12 12" />
+                            </svg>
+                        </button>
+                    </header>
+
+                    <form id="maintenance-form" class="service-form maintenance-form">
+                        <div class="service-form__grid maintenance-form__grid">
+                            <label class="field">
+                                <span class="field__label">
+                                    Przebieg przy wymianie
+                                </span>
+                                <input
+                                    id="maintenance-mileage"
+                                    class="service-input"
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    placeholder="Np. 198500"
+                                    inputmode="numeric"
+                                    required
+                                />
+                            </label>
+
+                            <label class="field">
+                                <span class="field__label">Data wymiany</span>
+                                <input
+                                    id="maintenance-date"
+                                    class="service-input"
+                                    type="date"
+                                    required
+                                />
+                            </label>
+                        </div>
+
+                        <p class="maintenance-form__note">
+                            Po zapisie karta serwisowa od razu pokaże kolejny
+                            przebieg i datę wymiany.
+                        </p>
+
+                        <div class="service-form__actions">
+                            <button
+                                class="service-form__secondary"
+                                type="button"
+                                data-close-maintenance-sheet
+                            >
+                                Anuluj
+                            </button>
+                            <button
+                                id="maintenance-form-submit-button"
+                                class="service-form__submit"
+                                type="submit"
+                            >
+                                Zapisz zmiany
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+
             <nav class="bottom-nav" aria-label="Dolna nawigacja">
                 <button
                     id="nav-dashboard"

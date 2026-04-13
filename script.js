@@ -11,7 +11,7 @@ const appData = {
             label: "OLEJ SILNIKOWY",
             mileage: "208,223",
             unit: "k",
-            nextMileage: "245k",
+            nextMileage: "245,000",
             progress: 78,
         },
         {
@@ -20,7 +20,7 @@ const appData = {
             label: "NAPĘD ROZRZĄDU",
             mileage: "208,223",
             unit: "k",
-            nextMileage: "500k",
+            nextMileage: "500,000",
             progress: 36,
         },
     ],
@@ -270,13 +270,14 @@ function renderStatuses() {
                 <p class="status-card__label">${item.label}</p>
             </div>
             <div class="status-card__value">
-                <span class="status-card__value-number">${formatMileage(vehicleMileage)}</span>
+                <span class="status-card__value-label">ostatnia wymiana</span>
+                <span class="status-card__value-number">${statusPresentation.valueMileageLabel}</span>
                 <span class="status-card__value-unit">km</span>
             </div>
             <div class="status-card__next">
-                <span class="status-card__next-label">Następny<br>przy</span>
+                <span class="status-card__next-label">Następny przy</span>
                 <div class="status-card__next-copy">
-                    <span class="status-card__next-badge">${statusPresentation.nextMileageLabel}</span>
+                    <span class="status-card__next-badge">${getStatusNextMileageMarkup(statusPresentation.nextMileageLabel)}</span>
                     ${statusPresentation.nextDateLabel ? `<span class="status-card__next-date">${statusPresentation.nextDateLabel}</span>` : ""}
                 </div>
             </div>
@@ -307,10 +308,27 @@ function getStatusPresentation(item, vehicle, currentMileage) {
     }
 
     return {
+        valueMileageLabel: formatMileage(currentMileage),
         nextMileageLabel: item.nextMileage,
         nextDateLabel: "",
         progress: item.progress,
     };
+}
+
+function getStatusNextMileageMarkup(nextMileageLabel) {
+    const label = normalizeText(String(nextMileageLabel || ""), 24).replace(
+        /\s*km$/i,
+        "",
+    );
+
+    if (!label) {
+        return '<span class="status-card__next-mileage">Brak danych</span>';
+    }
+
+    return `
+        <span class="status-card__next-mileage">${escapeHtml(label)}</span>
+        <span class="status-card__next-unit">km</span>
+    `;
 }
 
 function getOilStatusPresentation(vehicle, currentMileage) {
@@ -355,6 +373,7 @@ function getMaintenanceStatusPresentation({
     const nextDate = addYearsToIsoDate(normalizedLastDate, intervalYears);
 
     return {
+        valueMileageLabel: formatMileage(normalizedLastMileage),
         nextMileageLabel: formatMileage(nextMileage),
         nextDateLabel: formatNumericDate(nextDate),
         progress: getMileageProgress(

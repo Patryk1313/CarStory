@@ -1,0 +1,62 @@
+PLAN DZIALANIA APLIKACJI CARSTORY
+
+1. OGOLNE DZIALANIE
+- Aplikacja obsluguje jeden samochod i pokazuje jego podstawowe dane, statusy serwisowe, liste rzeczy do zrobienia oraz historie serwisowa.
+- Historia serwisowa jest zapisywana do Firebase Firestore.
+- Gdy Firebase chwilowo nie odpowiada, aplikacja korzysta z lokalnego cache, zeby dane nie znikaly z ekranu.
+- Podstrona "Historia" sluzy do zarzadzania wpisami: mozna tam dodawac, edytowac i usuwac wpisy serwisowe.
+
+2. DZIALANIE PRZYCISKOW
+
+Ustawienia
+- Na ten moment jest to przycisk placeholder.
+- Po kliknieciu pokazuje informacje, ze ustawienia beda dostepne pozniej.
+- Docelowo moze otwierac konfiguracje auta, danych kierowcy, ustawien przypomnien i integracji.
+
+Dodaj wpis
+- Otwiera formularz dodawania wpisu serwisowego.
+- Formularz pozwala wpisac: date, stan licznika, tytul, opis wykonanych prac i koszt.
+- Po zapisaniu wpis trafia do historii serwisowej i jest zapisywany do Firebase.
+- Ten sam formularz jest wykorzystywany tez do edycji wpisow z podstrony "Historia".
+
+Faktury
+- Na ten moment jest to placeholder.
+- Po kliknieciu pokazuje informacje, ze sekcja faktur jest w przygotowaniu.
+- Docelowo przycisk bedzie otwieral liste faktur, skanow, zdjec i zalacznikow do wpisow serwisowych.
+
+Analizy
+- Na ten moment jest to placeholder.
+- Po kliknieciu pokazuje informacje, ze analizy beda dostepne pozniej.
+- Docelowo bedzie pokazywac koszty serwisu, czestotliwosc napraw, statystyki wydatkow i przypomnienia o kolejnych serwisach.
+
+Pojazd (przycisk w navbar)
+- Otwiera glowny dashboard samochodu.
+- Pokazuje dane auta, statusy oleju i rozrzadu, szybkie akcje, liste do zrobienia i skrot historii serwisowej.
+
+Historia (przycisk w navbar)
+- Otwiera podstrone historii serwisowej.
+- Na tej podstronie widac wszystkie wpisy serwisowe.
+- Kazdy wpis mozna edytowac albo usunac.
+- Na gorze tej podstrony jest tez przycisk dodania nowego wpisu.
+
+Czesci (przycisk w navbar)
+- Na ten moment jest to placeholder.
+- Po kliknieciu pokazuje informacje, ze sekcja czesci jest w przygotowaniu.
+- Docelowo bedzie przechowywala liste czesci zamontowanych w aucie, producentow, numerow katalogowych i terminow wymiany.
+
+Profil (przycisk w navbar)
+- Na ten moment jest to placeholder.
+- Po kliknieciu pokazuje informacje, ze profil jest w przygotowaniu.
+- Docelowo moze zawierac dane wlasciciela, ustawienia konta, eksport danych i preferencje aplikacji.
+
+3. PODSTRONA HISTORIA
+- Wyswietla pelna liste wpisow serwisowych.
+- Wpisy sa sortowane od najnowszego do najstarszego.
+- Przy kazdym wpisie widac date, przebieg, tytul, opis i koszt.
+- Przycisk "Edytuj" otwiera formularz z juz uzupelnionymi danymi.
+- Przycisk "Usun" kasuje wpis po potwierdzeniu.
+
+4. FIREBASE
+- Firebase przechowuje historie serwisowa w Firestore.
+- Dane sa przypisane do jednego dokumentu auta i jego kolekcji historii serwisowej.
+- Po dodaniu, edycji lub usunieciu wpisu lista odswieza sie automatycznie po synchronizacji z Firebase.

@@ -1869,7 +1869,9 @@ function setupHistoryActions() {
 }
 
 function setupServiceEntryActions() {
-    [openEntrySheetButton, openEntrySheetHistoryButton].forEach((button) => {
+    [openEntrySheetButton, openEntrySheetHistoryButton]
+        .filter(Boolean)
+        .forEach((button) => {
         button.addEventListener("click", () => {
             if (!requireAuthenticatedHistoryAccess()) {
                 return;
@@ -1877,7 +1879,11 @@ function setupServiceEntryActions() {
 
             openEntrySheet();
         });
-    });
+        });
+
+    if (!closeEntrySheetButton || !serviceEntryForm) {
+        return;
+    }
 
     closeEntrySheetButton.addEventListener("click", () => {
         closeEntrySheet({ reset: true });

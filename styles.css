@@ -2189,7 +2189,7 @@ button {
     left: 50%;
     bottom: 0;
     transform: translateX(-50%);
-    width: min(100%, 390px);
+    width: min(100%);
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 2px;

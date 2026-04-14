@@ -172,6 +172,107 @@
                     </section>
                 </section>
 
+                <section id="parts-view" class="view" data-view="parts" hidden>
+                    <section
+                        class="hero hero--parts"
+                        aria-labelledby="parts-page-heading"
+                    >
+                        <div class="hero__content">
+                            <h1 id="parts-page-heading" class="hero__title">
+                                Części
+                            </h1>
+                            <p class="section-subtitle hero__subtitle">
+                                Zapisuj, co wymaga wymiany w aucie, i oznaczaj
+                                wagę każdej pozycji priorytetem.
+                            </p>
+                        </div>
+                        <span
+                            id="parts-count"
+                            class="summary-pill"
+                            aria-live="polite"
+                        ></span>
+                    </section>
+
+                    <section
+                        class="parts-card"
+                        aria-labelledby="parts-list-title"
+                    >
+                        <header class="section-header">
+                            <div class="section-heading">
+                                <!-- <h2 id="parts-list-title">Lista do wymiany</h2> -->
+                                <p class="section-subtitle">
+                                    Działa jak prosta lista zadań, ale każda
+                                    część ma priorytet ważności.
+                                </p>
+                            </div>
+                        </header>
+
+                        <form id="parts-form" class="parts-form">
+                            <div class="parts-form__grid">
+                                <label
+                                    class="field parts-form__field"
+                                    for="parts-input"
+                                >
+                                    <span class="field__label"
+                                        >Część do wymiany</span
+                                    >
+                                    <input
+                                        id="parts-input"
+                                        class="todo-input parts-form__input"
+                                        type="text"
+                                        maxlength="80"
+                                        placeholder="Np. klocki hamulcowe przód"
+                                        autocomplete="off"
+                                    />
+                                </label>
+
+                                <label
+                                    class="field parts-form__field"
+                                    for="parts-priority"
+                                >
+                                    <span class="field__label">Priorytet</span>
+                                    <select
+                                        id="parts-priority"
+                                        class="parts-select"
+                                        aria-label="Priorytet wymiany"
+                                    >
+                                        <option value="low">
+                                            Do obserwacji
+                                        </option>
+                                        <option value="medium" selected>
+                                            Wkrótce
+                                        </option>
+                                        <option value="high">Pilne</option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div class="parts-form__actions">
+                                <p class="parts-form__hint">
+                                    Dodaj element i ustaw, jak pilna jest jego
+                                    wymiana.
+                                </p>
+                                <button
+                                    id="parts-submit"
+                                    class="todo-submit parts-form__submit"
+                                    type="submit"
+                                >
+                                    Dodaj do listy
+                                </button>
+                            </div>
+                        </form>
+
+                        <p id="parts-empty" class="todo-empty" hidden>
+                            Brak części oznaczonych do wymiany.
+                        </p>
+                        <ul
+                            id="parts-list"
+                            class="parts-list"
+                            aria-label="Lista części do wymiany"
+                        ></ul>
+                    </section>
+                </section>
+
                 <section
                     id="profile-view"
                     class="view"
@@ -1140,9 +1241,10 @@
                     <span>Historia</span>
                 </button>
                 <button
+                    id="nav-parts"
                     class="nav-item"
                     type="button"
-                    data-placeholder="Sekcja czesci jest w przygotowaniu"
+                    data-nav-view="parts"
                 >
                     <span
                         class="nav-item__icon nav-item__icon--parts"

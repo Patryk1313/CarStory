@@ -69,6 +69,26 @@ const appData = {
             text: "Skontrolować ciśnienie i stan opon",
         },
     ],
+    parts: [
+        {
+            id: "part-front-brake-pads",
+            name: "Klocki hamulcowe przód",
+            priority: "high",
+            completed: false,
+        },
+        {
+            id: "part-cabin-filter",
+            name: "Filtr kabinowy",
+            priority: "medium",
+            completed: false,
+        },
+        {
+            id: "part-rear-wiper",
+            name: "Pióro tylnej wycieraczki",
+            priority: "low",
+            completed: false,
+        },
+    ],
 };
 
 const TODO_STORAGE_KEY = "car-info-todos";
@@ -110,6 +130,7 @@ const carYear = document.getElementById("car-year");
 const carEngine = document.getElementById("car-engine");
 const dashboardView = document.getElementById("dashboard-view");
 const historyView = document.getElementById("history-view");
+const partsView = document.getElementById("parts-view");
 const profileView = document.getElementById("profile-view");
 const settingsView = document.getElementById("settings-view");
 const statusGrid = document.getElementById("status-grid");
@@ -187,7 +208,14 @@ const settingsImportButton = document.getElementById("settings-import-button");
 const settingsImportInput = document.getElementById("settings-import-input");
 const navDashboard = document.getElementById("nav-dashboard");
 const navHistory = document.getElementById("nav-history");
+const navParts = document.getElementById("nav-parts");
 const navProfile = document.getElementById("nav-profile");
+const partsCount = document.getElementById("parts-count");
+const partsForm = document.getElementById("parts-form");
+const partsInput = document.getElementById("parts-input");
+const partsPriorityInput = document.getElementById("parts-priority");
+const partsList = document.getElementById("parts-list");
+const partsEmpty = document.getElementById("parts-empty");
 const openEntrySheetButton = document.getElementById("open-entry-sheet-button");
 const openEntrySheetHistoryButton = document.getElementById(
     "open-entry-sheet-history-button",
@@ -737,7 +765,56 @@ function renderProfileSummary() {
     const vehicles = getProfileVehicles();
 
     renderVehicleManager(vehicles, selectedVehicle.id);
+    renderPartsView();
     renderSettingsView();
+}
+
+function renderPartsView() {
+    if (!partsCount || !partsEmpty || !partsList || !partsForm) {
+        return;
+    }
+
+    const hasVehicle = hasActiveVehicle();
+    const vehicleParts = hasVehicle ? getSelectedVehicleParts() : [];
+
+    partsCount.textContent = hasVehicle
+        ? getCountLabel(vehicleParts.length, ["część", "części", "części"])
+        : "0 części";
+    partsForm.hidden = !hasVehicle;
+    partsEmpty.hidden = hasVehicle ? vehicleParts.length !== 0 : false;
+    partsEmpty.textContent = hasVehicle
+        ? "Brak części oznaczonych do wymiany."
+        : "Dodaj pojazd w sekcji Pojazdy, aby prowadzić listę części do wymiany.";
+    partsList.hidden = !hasVehicle || vehicleParts.length === 0;
+
+    if (!hasVehicle) {
+        partsList.innerHTML = "";
+        return;
+    }
+
+    partsList.innerHTML = sortVehicleParts(vehicleParts)
+        .map(
+            (item) => `
+                <li data-part-id="${escapeHtml(item.id)}">
+                    <article class="vehicle-item vehicle-item--active part-item${item.completed ? " part-item--done" : ""}">
+                        <label class="part-item__toggle" aria-label="Oznacz część jako wymienioną">
+                            <input class="part-item__checkbox" type="checkbox" ${item.completed ? "checked" : ""}>
+                            <span class="vehicle-item__indicator" aria-hidden="true"></span>
+                        </label>
+                        <div class="vehicle-item__main">
+                            <div class="part-item__priority-row">
+                                <span class="vehicle-item__badge part-item__badge part-item__badge--${item.completed ? "done" : item.priority}">${escapeHtml(getPartPriorityLabel(item.priority, item.completed))}</span>
+                            </div>
+                            <p class="vehicle-item__title">${escapeHtml(item.name)}</p>
+                        </div>
+                        <button class="vehicle-item__delete part-item__delete" type="button" data-part-action="delete" aria-label="Usuń część z listy">
+                            Usuń
+                        </button>
+                    </article>
+                </li>
+            `,
+        )
+        .join("");
 }
 
 function renderSettingsView() {
@@ -1065,6 +1142,7 @@ function setupNavigation() {
     [
         [navDashboard, "dashboard"],
         [navHistory, "history"],
+        [navParts, "parts"],
         [navProfile, "profile"],
         [openHistoryViewButton, "history"],
         [openSettingsViewButton, "settings"],
@@ -1735,15 +1813,18 @@ function setActiveView(viewName) {
 
     dashboardView.hidden = viewName !== "dashboard";
     historyView.hidden = viewName !== "history";
+    partsView.hidden = viewName !== "parts";
     profileView.hidden = viewName !== "profile";
     settingsView.hidden = viewName !== "settings";
 
     navDashboard.classList.toggle("nav-item--active", viewName === "dashboard");
     navHistory.classList.toggle("nav-item--active", viewName === "history");
+    navParts.classList.toggle("nav-item--active", viewName === "parts");
     navProfile.classList.toggle("nav-item--active", viewName === "profile");
 
     navDashboard.toggleAttribute("aria-current", viewName === "dashboard");
     navHistory.toggleAttribute("aria-current", viewName === "history");
+    navParts.toggleAttribute("aria-current", viewName === "parts");
     navProfile.toggleAttribute("aria-current", viewName === "profile");
 
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1822,6 +1903,124 @@ function setupTodoActions() {
     });
 }
 
+function setupPartsActions() {
+    if (!partsForm || !partsInput || !partsPriorityInput || !partsList) {
+        return;
+    }
+
+    partsForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (!hasActiveVehicle()) {
+            showToast("Dodaj pojazd, aby prowadzić listę części.");
+            setActiveView("profile");
+            return;
+        }
+
+        const name = normalizeText(partsInput.value, 80);
+        const priority = normalizePartPriority(partsPriorityInput.value);
+
+        if (!name) {
+            showToast("Wpisz nazwę części do wymiany.");
+            partsInput.focus();
+            return;
+        }
+
+        const savedTo = await saveSelectedVehicleParts([
+            ...getSelectedVehicleParts(),
+            {
+                id: createPartId(),
+                name,
+                priority,
+                completed: false,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+            },
+        ]);
+
+        partsForm.reset();
+        partsPriorityInput.value = "medium";
+        partsInput.focus();
+        showToast(
+            savedTo === "firebase"
+                ? "Dodano część do listy wymiany."
+                : "Dodano część lokalnie.",
+        );
+    });
+
+    partsList.addEventListener("change", async (event) => {
+        if (!event.target.classList.contains("part-item__checkbox")) {
+            return;
+        }
+
+        const item = event.target.closest("[data-part-id]");
+
+        if (!item) {
+            return;
+        }
+
+        const partId = item.dataset.partId;
+        const savedTo = await saveSelectedVehicleParts(
+            getSelectedVehicleParts().map((entry) =>
+                entry.id === partId
+                    ? {
+                          ...entry,
+                          completed: event.target.checked,
+                          updatedAt: Date.now(),
+                      }
+                    : entry,
+            ),
+        );
+
+        showToast(
+            savedTo === "firebase"
+                ? event.target.checked
+                    ? "Część oznaczona jako wymieniona."
+                    : "Część wróciła na listę wymiany."
+                : "Zapisano zmianę lokalnie.",
+        );
+    });
+
+    partsList.addEventListener("click", async (event) => {
+        const deleteButton = event.target.closest(
+            "[data-part-action='delete']",
+        );
+
+        if (!deleteButton) {
+            return;
+        }
+
+        const item = deleteButton.closest("[data-part-id]");
+
+        if (!item) {
+            return;
+        }
+
+        const partId = item.dataset.partId;
+        const targetPart = getSelectedVehicleParts().find(
+            (entry) => entry.id === partId,
+        );
+
+        if (!targetPart) {
+            return;
+        }
+
+        if (!window.confirm(`Usunąć część "${targetPart.name}" z listy?`)) {
+            return;
+        }
+
+        const savedTo = await saveSelectedVehicleParts(
+            getSelectedVehicleParts().filter((entry) => entry.id !== partId),
+        );
+
+        showToast(
+            savedTo === "firebase"
+                ? "Usunięto część z listy."
+                : "Usunięto część lokalnie.",
+        );
+    });
+}
+
 function setupHistoryActions() {
     historyPageList.addEventListener("click", async (event) => {
         const actionButton = event.target.closest("[data-history-action]");
@@ -1872,13 +2071,13 @@ function setupServiceEntryActions() {
     [openEntrySheetButton, openEntrySheetHistoryButton]
         .filter(Boolean)
         .forEach((button) => {
-        button.addEventListener("click", () => {
-            if (!requireAuthenticatedHistoryAccess()) {
-                return;
-            }
+            button.addEventListener("click", () => {
+                if (!requireAuthenticatedHistoryAccess()) {
+                    return;
+                }
 
-            openEntrySheet();
-        });
+                openEntrySheet();
+            });
         });
 
     if (!closeEntrySheetButton || !serviceEntryForm) {
@@ -3348,6 +3547,7 @@ function createDefaultVehicleProfile() {
         timingDriveDate: "2023-01-22",
         timingDriveIntervalKm: DEFAULT_MAINTENANCE_INTERVALS.timing.mileage,
         timingDriveIntervalMonths: DEFAULT_MAINTENANCE_INTERVALS.timing.months,
+        parts: appData.parts,
     };
 }
 
@@ -3422,7 +3622,59 @@ function normalizeVehicleProfile(vehicle) {
         timingDriveDate,
         timingDriveIntervalKm: timingInterval.mileage,
         timingDriveIntervalMonths: timingInterval.months,
+        parts: normalizeVehiclePartItems(vehicle.parts),
     };
+}
+
+function normalizeVehiclePartItems(items) {
+    if (!Array.isArray(items)) {
+        return [];
+    }
+
+    return items.map((item) => normalizeVehiclePartItem(item)).filter(Boolean);
+}
+
+function normalizeVehiclePartItem(item) {
+    if (!item || typeof item !== "object") {
+        return null;
+    }
+
+    const name = normalizeText(item.name, 80);
+    const createdAt = Number(item.createdAt);
+    const updatedAt = Number(item.updatedAt);
+
+    if (!name) {
+        return null;
+    }
+
+    return {
+        id: typeof item.id === "string" && item.id ? item.id : createPartId(),
+        name,
+        priority: normalizePartPriority(item.priority),
+        completed: Boolean(item.completed),
+        createdAt: Number.isFinite(createdAt) ? createdAt : Date.now(),
+        updatedAt: Number.isFinite(updatedAt)
+            ? updatedAt
+            : Number.isFinite(createdAt)
+              ? createdAt
+              : Date.now(),
+    };
+}
+
+function normalizePartPriority(value) {
+    if (value === "high" || value === "medium" || value === "low") {
+        return value;
+    }
+
+    return "medium";
+}
+
+function createPartId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+    }
+
+    return `part-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function normalizeVehicleReferenceId(value) {
@@ -3486,6 +3738,16 @@ function getSelectedVehicleId() {
     return selectedVehicle.isPlaceholder ? "" : selectedVehicle.id;
 }
 
+function getSelectedVehicleParts() {
+    const selectedVehicle = getSelectedVehicle();
+
+    if (selectedVehicle.isPlaceholder) {
+        return [];
+    }
+
+    return normalizeVehiclePartItems(selectedVehicle.parts);
+}
+
 function hasActiveVehicle() {
     return Boolean(getSelectedVehicleId());
 }
@@ -3510,6 +3772,69 @@ function formatVehicleServiceLine(label, mileage, date) {
     return parts.length
         ? `${label}: ${parts.join(" • ")}`
         : `${label}: brak danych`;
+}
+
+function getPartPriorityLabel(priority, completed = false) {
+    if (completed) {
+        return "Wymienione";
+    }
+
+    if (priority === "high") {
+        return "Pilne";
+    }
+
+    if (priority === "low") {
+        return "Do obserwacji";
+    }
+
+    return "Wkrótce";
+}
+
+function sortVehicleParts(items) {
+    const priorityOrder = {
+        high: 0,
+        medium: 1,
+        low: 2,
+    };
+
+    return [...items].sort((leftItem, rightItem) => {
+        if (leftItem.completed !== rightItem.completed) {
+            return Number(leftItem.completed) - Number(rightItem.completed);
+        }
+
+        const leftPriority = priorityOrder[leftItem.priority] ?? 1;
+        const rightPriority = priorityOrder[rightItem.priority] ?? 1;
+
+        if (leftPriority !== rightPriority) {
+            return leftPriority - rightPriority;
+        }
+
+        return (rightItem.createdAt || 0) - (leftItem.createdAt || 0);
+    });
+}
+
+async function saveSelectedVehicleParts(parts) {
+    const selectedVehicleId = getSelectedVehicleId();
+
+    if (!selectedVehicleId) {
+        return "local";
+    }
+
+    const normalizedParts = normalizeVehiclePartItems(parts);
+    const nextVehicles = getProfileVehicles().map((vehicle) =>
+        vehicle.id === selectedVehicleId
+            ? {
+                  ...vehicle,
+                  parts: normalizedParts,
+              }
+            : vehicle,
+    );
+
+    return persistProfileSettings({
+        ...profileSettings,
+        vehicles: nextVehicles,
+        updatedAt: Date.now(),
+    });
 }
 
 function readVehicleFormValues() {
@@ -3721,6 +4046,7 @@ function init() {
     setupVehicleActions();
     setupSettingsActions();
     setupTodoActions();
+    setupPartsActions();
     setupHistoryActions();
     setupServiceEntryActions();
 }

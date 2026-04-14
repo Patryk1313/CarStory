@@ -1108,6 +1108,7 @@ button {
 
 #dashboard-view:not([hidden]),
 #history-view:not([hidden]),
+#parts-view:not([hidden]),
 #profile-view:not([hidden]) {
     display: grid;
     align-content: start;
@@ -1120,18 +1121,22 @@ button {
 #dashboard-view > .history-card,
 #history-view > .hero,
 #history-view > .history-manage-card,
+#parts-view > .hero,
+#parts-view > .parts-card,
 #profile-view > .profile-card--vehicles {
     margin-bottom: 0;
 }
 
 #dashboard-view > .history-card,
 #history-view > .history-manage-card,
+#parts-view > .parts-card,
 #profile-view > .profile-card--vehicles {
     padding: var(--page-card-padding);
 }
 
 #dashboard-view > .history-card > .section-header,
 #history-view > .history-manage-card > .section-header,
+#parts-view > .parts-card > .section-header,
 #profile-view > .profile-card--vehicles > .hero {
     margin-bottom: 16px;
 }
@@ -1590,6 +1595,10 @@ button {
     padding: 18px 16px 16px;
 }
 
+.parts-card {
+    padding: 18px 16px 16px;
+}
+
 .quick-action {
     display: grid;
     place-items: center;
@@ -1857,6 +1866,205 @@ button {
     line-height: 1.4;
     text-align: center;
     color: #7d889c;
+}
+
+.parts-form {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    margin-bottom: 12px;
+    padding: 14px;
+    border: 1px solid #e8ecf1;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
+}
+
+.parts-form__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(128px, 0.85fr);
+    gap: 12px;
+}
+
+.parts-form__field {
+    gap: 8px;
+}
+
+.parts-form__input {
+    min-height: 46px;
+}
+
+.parts-form__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 2px;
+}
+
+.parts-form__hint {
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.45;
+    color: #7d889c;
+}
+
+.parts-form__submit {
+    min-width: 144px;
+    min-height: 46px;
+    white-space: nowrap;
+}
+
+.parts-select {
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid #dbe3ec;
+    border-radius: 10px;
+    padding: 0 12px;
+    background: #fafbfd;
+    color: #111827;
+    font: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    box-shadow: none;
+    transition:
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        background-color 180ms ease;
+}
+
+.parts-select:focus {
+    border-color: #c7d2df;
+    box-shadow: 0 0 0 3px rgba(219, 227, 236, 0.42);
+    background: #ffffff;
+}
+
+.parts-list {
+    position: relative;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+}
+
+.parts-list::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    bottom: 26px;
+    width: 2px;
+    background: repeating-linear-gradient(
+        180deg,
+        #dce5f2 0 4px,
+        transparent 4px 8px
+    );
+}
+
+.parts-list > li {
+    position: relative;
+}
+
+.parts-list .part-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 10px;
+    padding: 2px 0 18px 26px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.part-item--done {
+    opacity: 0.78;
+}
+
+.part-item--done .vehicle-item__title {
+    color: #7c879c;
+    text-decoration: line-through;
+}
+
+.part-item__toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    margin-top: 7px;
+}
+
+.part-item__checkbox {
+    position: absolute;
+    inset: -6px;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.part-item__toggle .vehicle-item__indicator {
+    border-color: #111827;
+    background: #111827;
+    box-shadow: 0 0 0 3px #eef2f6;
+}
+
+.part-item__checkbox:checked + .vehicle-item__indicator {
+    border-color: #0f9367;
+    background: #0f9367;
+    box-shadow: 0 0 0 3px #ecfbf5;
+}
+
+.part-item__badge {
+    min-height: 20px;
+    padding: 0 7px;
+    font-size: 0.68rem;
+    flex-shrink: 0;
+}
+
+.part-item__delete {
+    align-self: start;
+    padding: 2px 0 0 10px;
+    font-size: 0.74rem;
+}
+
+.part-item .vehicle-item__main {
+    gap: 4px;
+}
+
+.part-item__priority-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.part-item .vehicle-item__title {
+    font-size: 0.92rem;
+    line-height: 1.24;
+}
+
+.part-item.vehicle-item--active .part-item__badge--high {
+    background: #fff1f2;
+    color: #c53030;
+    box-shadow: inset 0 0 0 1px rgba(197, 48, 48, 0.12);
+}
+
+.part-item.vehicle-item--active .part-item__badge--medium {
+    background: #fff7ed;
+    color: #dd6b20;
+    box-shadow: inset 0 0 0 1px rgba(221, 107, 32, 0.12);
+}
+
+.part-item.vehicle-item--active .part-item__badge--low {
+    background: #f3f4f6;
+    color: #6b7280;
+    box-shadow: inset 0 0 0 1px rgba(107, 114, 128, 0.12);
+}
+
+.part-item.vehicle-item--active .part-item__badge--done {
+    background: #ecfbf5;
+    color: #0f9367;
+    box-shadow: inset 0 0 0 1px rgba(15, 147, 103, 0.12);
 }
 
 .entry-sheet {
@@ -2419,6 +2627,23 @@ button {
 
     .todo-form {
         grid-template-columns: 1fr;
+    }
+
+    .parts-form {
+        padding: 12px;
+    }
+
+    .parts-form__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .parts-form__actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .parts-form__submit {
+        width: 100%;
     }
 
     .todo-submit {

@@ -22,11 +22,15 @@
 
 html {
     font-size: 16px;
+    height: 100%;
+    height: -webkit-fill-available;
 }
 
 body {
     margin: 0;
     min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
     font-family:
         "Inter",
         system-ui,
@@ -53,6 +57,8 @@ button {
 .app-shell {
     width: min(100%, 390px);
     min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
     margin: 0 auto;
     position: relative;
 }
@@ -302,6 +308,7 @@ button {
     gap: 12px;
     padding: 15px 16px;
     cursor: pointer;
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -835,6 +842,7 @@ button {
     gap: 12px;
     padding: 14px;
     cursor: pointer;
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -1115,6 +1123,7 @@ button {
     border: 0;
     padding: 0;
     background: rgba(8, 18, 39, 0.48);
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
 }
 
@@ -1286,6 +1295,7 @@ button {
 
 .status-card--interactive {
     width: 100%;
+    -webkit-appearance: none;
     appearance: none;
     color: inherit;
     text-align: left;
@@ -1820,6 +1830,7 @@ button {
     border: 0;
     padding: 0;
     background: rgba(8, 18, 39, 0.42);
+    -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
 }
 
@@ -2186,7 +2197,7 @@ button {
     left: 50%;
     bottom: 0;
     transform: translateX(-50%);
-    width: min(100%);
+    width: 100%;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 2px;
@@ -2194,6 +2205,7 @@ button {
     background: rgba(255, 255, 255, 0.94);
     border-top: 1px solid rgba(13, 33, 69, 0.06);
     box-shadow: 0 -10px 25px rgba(17, 36, 77, 0.08);
+    -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
 }
 
@@ -2381,10 +2393,12 @@ button {
 
     .app-shell {
         min-height: calc(100vh - 48px);
+        min-height: calc(100dvh - 48px);
         border-radius: 28px;
         background: rgba(255, 255, 255, 0.72);
         box-shadow: 0 24px 60px rgba(16, 42, 89, 0.14);
         overflow: hidden;
+        -webkit-backdrop-filter: blur(12px);
         backdrop-filter: blur(12px);
     }
 

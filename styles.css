@@ -1214,35 +1214,32 @@ button {
     display: block;
     width: 18px;
     height: 18px;
-    background: currentColor;
-    mask-position: center;
-    mask-repeat: no-repeat;
-    mask-size: contain;
-    -webkit-mask-position: center;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-size: contain;
+    flex-shrink: 0;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.62;
+}
+
+.nav-item--active .nav-item__icon {
+    opacity: 1;
 }
 
 .nav-item__icon--vehicle {
-    mask-image: url("pojazd.png");
-    mask-size: 120% 120%;
-    -webkit-mask-image: url("pojazd.png");
-    -webkit-mask-size: 120% 120%;
+    background-image: url("pojazd.png");
+    background-size: 120% 120%;
 }
 
 .nav-item__icon--history {
-    mask-image: url("historia.png");
-    -webkit-mask-image: url("historia.png");
+    background-image: url("historia.png");
 }
 
 .nav-item__icon--parts {
-    mask-image: url("czesci.png");
-    -webkit-mask-image: url("czesci.png");
+    background-image: url("czesci.png");
 }
 
 .nav-item__icon--vehicles {
-    mask-image: url("pojazdy.png");
-    -webkit-mask-image: url("pojazdy.png");
+    background-image: url("pojazdy.png");
 }
 
 .icon-button svg {

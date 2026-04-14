@@ -802,10 +802,10 @@ function renderPartsView() {
                             <span class="vehicle-item__indicator" aria-hidden="true"></span>
                         </label>
                         <div class="vehicle-item__main">
-                            <div class="part-item__priority-row">
+                            <div class="vehicle-item__heading">
+                                <p class="vehicle-item__title">${escapeHtml(item.name)}</p>
                                 <span class="vehicle-item__badge part-item__badge part-item__badge--${item.completed ? "done" : item.priority}">${escapeHtml(getPartPriorityLabel(item.priority, item.completed))}</span>
                             </div>
-                            <p class="vehicle-item__title">${escapeHtml(item.name)}</p>
                         </div>
                         <button class="vehicle-item__delete part-item__delete" type="button" data-part-action="delete" aria-label="Usuń część z listy">
                             Usuń

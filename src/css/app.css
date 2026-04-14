@@ -1939,26 +1939,12 @@ button {
 }
 
 .parts-list {
-    position: relative;
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
     gap: 0;
-}
-
-.parts-list::before {
-    content: "";
-    position: absolute;
-    left: 8px;
-    top: 8px;
-    bottom: 26px;
-    width: 2px;
-    background: repeating-linear-gradient(
-        180deg,
-        #dce5f2 0 4px,
-        transparent 4px 8px
-    );
+    border-top: 1px solid #e8edf3;
 }
 
 .parts-list > li {
@@ -1968,12 +1954,17 @@ button {
 .parts-list .part-item {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 10px;
-    padding: 2px 0 18px 26px;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
     border: 0;
+    border-bottom: 1px solid #e8edf3;
     border-radius: 0;
     background: transparent;
+}
+
+.parts-list > li:last-child .part-item {
+    border-bottom: 0;
 }
 
 .part-item--done {
@@ -1993,7 +1984,6 @@ button {
     width: 10px;
     height: 10px;
     flex-shrink: 0;
-    margin-top: 7px;
 }
 
 .part-item__checkbox {
@@ -2023,24 +2013,28 @@ button {
 }
 
 .part-item__delete {
-    align-self: start;
-    padding: 2px 0 0 10px;
-    font-size: 0.74rem;
+    padding-left: 10px;
+    font-size: 0.78rem;
 }
 
 .part-item .vehicle-item__main {
-    gap: 4px;
+    gap: 3px;
 }
 
-.part-item__priority-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
+.part-item .vehicle-item__heading {
+    justify-content: space-between;
+    gap: 12px;
 }
 
 .part-item .vehicle-item__title {
-    font-size: 0.92rem;
+    font-size: 0.96rem;
     line-height: 1.24;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.part-item .part-item__badge {
+    margin-left: auto;
 }
 
 .part-item.vehicle-item--active .part-item__badge--high {

@@ -144,7 +144,6 @@ const closeAuthModalButton = document.getElementById("close-auth-modal-button");
 const profileVehiclesCard = document.getElementById("profile-vehicles-card");
 const profileVehiclesCount = document.getElementById("profile-vehicles-count");
 const profileVehiclesTotal = document.getElementById("profile-vehicles-total");
-const profileVehicleSelect = document.getElementById("profile-vehicle-select");
 const profileVehiclesEmpty = document.getElementById("profile-vehicles-empty");
 const profileVehiclesList = document.getElementById("profile-vehicles-list");
 const vehicleFormDropdown = document.getElementById("vehicle-form-dropdown");
@@ -161,10 +160,6 @@ const vehicleTimingMileageInput = document.getElementById(
 );
 const vehicleTimingDateInput = document.getElementById("vehicle-timing-date");
 const vehicleSubmitButton = document.getElementById("vehicle-submit-button");
-const settingsVehicleHint = document.getElementById("settings-vehicle-hint");
-const settingsIntervalsPill = document.getElementById(
-    "settings-intervals-pill",
-);
 const settingsIntervalEmpty = document.getElementById(
     "settings-interval-empty",
 );
@@ -756,18 +751,6 @@ function renderSettingsView() {
         "timing",
     );
 
-    if (settingsIntervalsPill) {
-        settingsIntervalsPill.textContent = hasVehicle
-            ? normalizeText(selectedVehicle.name, 22) || "Aktywny pojazd"
-            : "Brak pojazdu";
-    }
-
-    if (settingsVehicleHint) {
-        settingsVehicleHint.textContent = hasVehicle
-            ? `Aktywny pojazd: ${formatVehicleMeta(selectedVehicle)}`
-            : "Interwały zapisują się osobno dla każdego pojazdu.";
-    }
-
     if (settingsIntervalEmpty) {
         settingsIntervalEmpty.hidden = hasVehicle;
     }
@@ -854,7 +837,6 @@ function renderVehicleManager(vehicles, selectedVehicleId) {
     if (
         !profileVehiclesCount ||
         !profileVehiclesTotal ||
-        !profileVehicleSelect ||
         !profileVehiclesEmpty ||
         !profileVehiclesList
     ) {
@@ -866,27 +848,19 @@ function renderVehicleManager(vehicles, selectedVehicleId) {
         "pojazdy",
         "pojazdów",
     ]);
+    const activeVehicle =
+        vehicles.find((vehicle) => vehicle.id === selectedVehicleId) ||
+        vehicles[0] ||
+        null;
 
     profileVehiclesCount.textContent = vehicleCountLabel;
     profileVehiclesTotal.textContent = vehicles.length
-        ? `Posiadasz ${vehicleCountLabel}.`
+        ? vehicles.length === 1
+            ? `Aktywny pojazd: ${activeVehicle?.name || vehicles[0].name}.`
+            : `Aktywny pojazd: ${activeVehicle?.name || vehicles[0].name}. Dotknij innego pojazdu na liście, aby go przełączyć.`
         : "Nie masz jeszcze dodanych pojazdów.";
     profileVehiclesEmpty.hidden = vehicles.length !== 0;
     profileVehiclesList.hidden = vehicles.length === 0;
-    profileVehicleSelect.disabled = vehicles.length === 0;
-    profileVehicleSelect.innerHTML = vehicles.length
-        ? vehicles
-              .map(
-                  (vehicle) => `
-                <option value="${escapeHtml(vehicle.id)}" ${
-                    vehicle.id === selectedVehicleId ? "selected" : ""
-                }>${escapeHtml(vehicle.name)}${
-                    vehicle.year ? ` • ${escapeHtml(vehicle.year)}` : ""
-                }</option>
-            `,
-              )
-              .join("")
-        : '<option value="">Brak pojazdów</option>';
 
     profileVehiclesList.innerHTML = vehicles
         .map(
@@ -897,24 +871,26 @@ function renderVehicleManager(vehicles, selectedVehicleId) {
                             ? " vehicle-item--active"
                             : ""
                     }">
-                        <div class="vehicle-item__top">
+                        <button
+                            class="vehicle-item__select"
+                            type="button"
+                            data-vehicle-action="select"
+                            data-vehicle-id="${escapeHtml(vehicle.id)}"
+                            aria-pressed="${vehicle.id === selectedVehicleId ? "true" : "false"}"
+                        >
+                            <span class="vehicle-item__indicator" aria-hidden="true"></span>
                             <div class="vehicle-item__main">
-                                <p class="vehicle-item__eyebrow">${escapeHtml(vehicle.type)}</p>
-                                <h3 class="vehicle-item__title">${escapeHtml(vehicle.name)}</h3>
+                                <div class="vehicle-item__heading">
+                                    <h3 class="vehicle-item__title">${escapeHtml(vehicle.name)}</h3>
+                                    ${vehicle.id === selectedVehicleId ? '<span class="vehicle-item__badge">Aktywne</span>' : ""}
+                                </div>
                                 <p class="vehicle-item__meta">${escapeHtml(formatVehicleMeta(vehicle))}</p>
-                                <p class="vehicle-item__service">${escapeHtml(formatVehicleServiceLine("Olej", vehicle.oilChangeMileage, vehicle.oilChangeDate))}</p>
-                                <p class="vehicle-item__service">${escapeHtml(formatVehicleServiceLine("Rozrząd", vehicle.timingDriveMileage, vehicle.timingDriveDate))}</p>
+                                <p class="vehicle-item__secondary">${escapeHtml(formatMileage(vehicle.mileage))} km</p>
                             </div>
-                            <span class="price-badge">${formatMileage(vehicle.mileage)}<br>km</span>
-                        </div>
-                        <div class="vehicle-item__actions">
-                            <button class="vehicle-action vehicle-action--select" type="button" data-vehicle-action="select" data-vehicle-id="${escapeHtml(vehicle.id)}">
-                                ${vehicle.id === selectedVehicleId ? "Aktywne" : "Wybierz"}
-                            </button>
-                            <button class="vehicle-action vehicle-action--delete" type="button" data-vehicle-action="delete" data-vehicle-id="${escapeHtml(vehicle.id)}">
-                                Usuń
-                            </button>
-                        </div>
+                        </button>
+                        <button class="vehicle-item__delete" type="button" data-vehicle-action="delete" data-vehicle-id="${escapeHtml(vehicle.id)}">
+                            Usuń
+                        </button>
                     </article>
                 </li>
             `,
@@ -1250,10 +1226,6 @@ function setupFirebaseAuth() {
 }
 
 function setupVehicleActions() {
-    profileVehicleSelect?.addEventListener("change", async (event) => {
-        await changeSelectedVehicle(event.target.value);
-    });
-
     profileVehiclesList?.addEventListener("click", async (event) => {
         const actionButton = event.target.closest("[data-vehicle-action]");
 

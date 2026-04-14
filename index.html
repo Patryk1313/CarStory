@@ -216,14 +216,6 @@
                         </header>
 
                         <div class="profile-vehicles-panel">
-                            <label class="field field--full">
-                                <span class="field__label">Aktywny pojazd</span>
-                                <select
-                                    id="profile-vehicle-select"
-                                    class="service-input"
-                                ></select>
-                            </label>
-
                             <p id="profile-vehicles-total" class="profile-note">
                                 Posiadasz 1 pojazd.
                             </p>
@@ -252,12 +244,12 @@
                                         Dodaj pojazd
                                     </span>
                                     <p class="vehicle-dropdown__summary-text">
-                                        Podstawowe dane i opcjonalny serwis
-                                        startowy.
+                                        Dodaj auto lub motocykl i ustaw dane
+                                        startowe w jednym formularzu.
                                     </p>
                                 </div>
                                 <span class="vehicle-dropdown__hint">
-                                    Rozwiń formularz
+                                    Otwórz
                                 </span>
                             </summary>
 
@@ -385,6 +377,13 @@
                                             >
                                                 Serwis początkowy
                                             </h3>
+                                            <p
+                                                class="vehicle-form-section__text"
+                                            >
+                                                Uzupełnij ostatnią wymianę oleju
+                                                i rozrządu, aby od razu liczyć
+                                                kolejne terminy.
+                                            </p>
                                         </div>
 
                                         <div class="vehicle-form-service-grid">
@@ -526,201 +525,213 @@
                         </button>
                     </section>
 
-                    <section
-                        class="profile-card settings-card"
-                        aria-labelledby="settings-intervals-title"
-                    >
-                        <header class="section-header">
-                            <div class="section-heading">
-                                <h2 id="settings-intervals-title">
+                    <details class="profile-card settings-card settings-dropdown">
+                        <summary
+                            class="settings-dropdown__summary"
+                            aria-labelledby="settings-intervals-title"
+                        >
+                            <div class="settings-dropdown__summary-copy">
+                                <h2
+                                    id="settings-intervals-title"
+                                    class="settings-dropdown__title"
+                                >
                                     Interwały serwisowe
                                 </h2>
-                                <p
-                                    id="settings-vehicle-hint"
-                                    class="section-subtitle"
-                                >
-                                    Ustawienia dla aktywnego pojazdu.
-                                </p>
                             </div>
-                            <span
-                                id="settings-intervals-pill"
-                                class="summary-pill"
-                            >
-                                Brak pojazdu
-                            </span>
-                        </header>
-
-                        <p id="settings-interval-empty" class="todo-empty" hidden>
-                            Dodaj pojazd w sekcji Pojazdy, aby ustawić własne
-                            terminy serwisowe.
-                        </p>
-
-                        <form
-                            id="settings-interval-form"
-                            class="profile-form settings-form"
-                            hidden
-                        >
-                            <div class="settings-maintenance-grid">
-                                <section
-                                    class="settings-maintenance-card"
-                                    aria-labelledby="settings-oil-title"
-                                >
-                                    <header class="settings-maintenance-card__header">
-                                        <h3 id="settings-oil-title">
-                                            Olej silnikowy
-                                        </h3>
-                                        <p>
-                                            Po ilu kilometrach lub miesiącach
-                                            karta ma zgłaszać kolejny serwis.
-                                        </p>
-                                    </header>
-
-                                    <div class="service-form__grid settings-grid">
-                                        <label class="field">
-                                            <span class="field__label">
-                                                Interwał km
-                                            </span>
-                                            <input
-                                                id="settings-oil-interval-km"
-                                                class="service-input"
-                                                type="number"
-                                                min="1"
-                                                step="1"
-                                                placeholder="Np. 10000"
-                                                inputmode="numeric"
-                                                required
-                                            />
-                                        </label>
-
-                                        <label class="field">
-                                            <span class="field__label">
-                                                Interwał miesięcy
-                                            </span>
-                                            <input
-                                                id="settings-oil-interval-months"
-                                                class="service-input"
-                                                type="number"
-                                                min="1"
-                                                step="1"
-                                                placeholder="Np. 12"
-                                                inputmode="numeric"
-                                                required
-                                            />
-                                        </label>
-                                    </div>
-                                </section>
-
-                                <section
-                                    class="settings-maintenance-card"
-                                    aria-labelledby="settings-timing-title"
-                                >
-                                    <header class="settings-maintenance-card__header">
-                                        <h3 id="settings-timing-title">
-                                            Napęd rozrządu
-                                        </h3>
-                                        <p>
-                                            Ustaw własny przebieg i okres dla
-                                            kolejnej wymiany rozrządu.
-                                        </p>
-                                    </header>
-
-                                    <div class="service-form__grid settings-grid">
-                                        <label class="field">
-                                            <span class="field__label">
-                                                Interwał km
-                                            </span>
-                                            <input
-                                                id="settings-timing-interval-km"
-                                                class="service-input"
-                                                type="number"
-                                                min="1"
-                                                step="1"
-                                                placeholder="Np. 60000"
-                                                inputmode="numeric"
-                                                required
-                                            />
-                                        </label>
-
-                                        <label class="field">
-                                            <span class="field__label">
-                                                Interwał miesięcy
-                                            </span>
-                                            <input
-                                                id="settings-timing-interval-months"
-                                                class="service-input"
-                                                type="number"
-                                                min="1"
-                                                step="1"
-                                                placeholder="Np. 60"
-                                                inputmode="numeric"
-                                                required
-                                            />
-                                        </label>
-                                    </div>
-                                </section>
+                            <div class="settings-dropdown__summary-tail">
+                                <span
+                                    class="settings-dropdown__icon"
+                                    aria-hidden="true"
+                                ></span>
                             </div>
+                        </summary>
 
-                            <p class="profile-note settings-form__note">
-                                Terminy na dashboardzie przeliczają się od razu
-                                na podstawie ostatniej wymiany i tych wartości.
+                        <div class="settings-dropdown__content">
+                            <p id="settings-interval-empty" class="todo-empty" hidden>
+                                Dodaj pojazd, aby ustawić interwały.
                             </p>
 
-                            <div class="vehicle-form__footer">
-                                <button
-                                    id="settings-interval-submit-button"
-                                    class="profile-save"
-                                    type="submit"
-                                >
-                                    Zapisz interwały
-                                </button>
-                            </div>
-                        </form>
-                    </section>
+                            <form
+                                id="settings-interval-form"
+                                class="profile-form settings-form"
+                                hidden
+                            >
+                                <div class="settings-maintenance-grid">
+                                    <section
+                                        class="settings-maintenance-card"
+                                        aria-labelledby="settings-oil-title"
+                                    >
+                                        <header class="settings-maintenance-card__header">
+                                            <h3 id="settings-oil-title">
+                                                Olej silnikowy
+                                            </h3>
+                                            <p>
+                                                Po ilu kilometrach lub miesiącach
+                                                karta ma zgłaszać kolejny serwis.
+                                            </p>
+                                        </header>
 
-                    <section
-                        class="profile-card settings-card"
-                        aria-labelledby="settings-backup-title"
-                    >
-                        <header class="section-header">
-                            <div class="section-heading">
-                                <h2 id="settings-backup-title">Kopia danych</h2>
-                                <p class="section-subtitle">
+                                        <div class="service-form__grid settings-grid">
+                                            <label class="field">
+                                                <span class="field__label">
+                                                    Interwał km
+                                                </span>
+                                                <input
+                                                    id="settings-oil-interval-km"
+                                                    class="service-input"
+                                                    type="number"
+                                                    min="1"
+                                                    step="1"
+                                                    placeholder="Np. 10000"
+                                                    inputmode="numeric"
+                                                    required
+                                                />
+                                            </label>
+
+                                            <label class="field">
+                                                <span class="field__label">
+                                                    Interwał miesięcy
+                                                </span>
+                                                <input
+                                                    id="settings-oil-interval-months"
+                                                    class="service-input"
+                                                    type="number"
+                                                    min="1"
+                                                    step="1"
+                                                    placeholder="Np. 12"
+                                                    inputmode="numeric"
+                                                    required
+                                                />
+                                            </label>
+                                        </div>
+                                    </section>
+
+                                    <section
+                                        class="settings-maintenance-card"
+                                        aria-labelledby="settings-timing-title"
+                                    >
+                                        <header class="settings-maintenance-card__header">
+                                            <h3 id="settings-timing-title">
+                                                Napęd rozrządu
+                                            </h3>
+                                            <p>
+                                                Ustaw własny przebieg i okres dla
+                                                kolejnej wymiany rozrządu.
+                                            </p>
+                                        </header>
+
+                                        <div class="service-form__grid settings-grid">
+                                            <label class="field">
+                                                <span class="field__label">
+                                                    Interwał km
+                                                </span>
+                                                <input
+                                                    id="settings-timing-interval-km"
+                                                    class="service-input"
+                                                    type="number"
+                                                    min="1"
+                                                    step="1"
+                                                    placeholder="Np. 60000"
+                                                    inputmode="numeric"
+                                                    required
+                                                />
+                                            </label>
+
+                                            <label class="field">
+                                                <span class="field__label">
+                                                    Interwał miesięcy
+                                                </span>
+                                                <input
+                                                    id="settings-timing-interval-months"
+                                                    class="service-input"
+                                                    type="number"
+                                                    min="1"
+                                                    step="1"
+                                                    placeholder="Np. 60"
+                                                    inputmode="numeric"
+                                                    required
+                                                />
+                                            </label>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                <p class="profile-note settings-form__note">
+                                    Terminy na dashboardzie przeliczają się od razu
+                                    na podstawie ostatniej wymiany i tych wartości.
+                                </p>
+
+                                <div class="vehicle-form__footer">
+                                    <button
+                                        id="settings-interval-submit-button"
+                                        class="profile-save"
+                                        type="submit"
+                                    >
+                                        Zapisz interwały
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </details>
+
+                    <details class="profile-card settings-card settings-dropdown">
+                        <summary
+                            class="settings-dropdown__summary"
+                            aria-labelledby="settings-backup-title"
+                        >
+                            <div class="settings-dropdown__summary-copy">
+                                <h2
+                                    id="settings-backup-title"
+                                    class="settings-dropdown__title"
+                                >
+                                    Kopia danych
+                                </h2>
+                                <p class="settings-dropdown__summary-text">
                                     Eksport i import pojazdów, historii oraz
                                     listy zadań dla bieżącego profilu.
                                 </p>
                             </div>
-                        </header>
+                            <div class="settings-dropdown__summary-tail">
+                                <span class="settings-dropdown__meta">JSON</span>
+                                <span
+                                    class="settings-dropdown__icon"
+                                    aria-hidden="true"
+                                ></span>
+                            </div>
+                        </summary>
 
-                        <input
-                            id="settings-import-input"
-                            class="sr-only"
-                            type="file"
-                            accept="application/json"
-                        />
+                        <div class="settings-dropdown__content">
+                            <input
+                                id="settings-import-input"
+                                class="sr-only"
+                                type="file"
+                                accept="application/json"
+                            />
 
-                        <div class="settings-actions-grid settings-actions-grid--split">
-                            <button
-                                id="settings-export-button"
-                                class="vehicle-action vehicle-action--select"
-                                type="button"
-                            >
-                                Eksportuj kopię
-                            </button>
-                            <button
-                                id="settings-import-button"
-                                class="vehicle-action"
-                                type="button"
-                            >
-                                Importuj kopię
-                            </button>
+                            <div class="settings-actions-grid settings-actions-grid--split">
+                                <button
+                                    id="settings-export-button"
+                                    class="vehicle-action vehicle-action--select"
+                                    type="button"
+                                >
+                                    Eksportuj kopię
+                                </button>
+                                <button
+                                    id="settings-import-button"
+                                    class="vehicle-action"
+                                    type="button"
+                                >
+                                    Importuj kopię
+                                </button>
+                            </div>
+
+                            <p class="profile-note">
+                                Import zastąpi lokalne dane bieżącego profilu. Jeśli
+                                jesteś zalogowany, aplikacja od razu spróbuje
+                                zsynchronizować import z Firebase.
+                            </p>
                         </div>
-
-                        <p class="profile-note">
-                            Import zastąpi lokalne dane bieżącego profilu. Jeśli
-                            jesteś zalogowany, aplikacja od razu spróbuje
-                            zsynchronizować import z Firebase.
-                        </p>
-                    </section>
+                    </details>
 
                     <div class="settings-footer">
                         <button
@@ -1066,16 +1077,10 @@
                     aria-current="page"
                     data-nav-view="dashboard"
                 >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path
-                            d="M5 15.5V12a2 2 0 0 1 .64-1.47l2.93-2.76A3 3 0 0 1 10.64 7h2.72a3 3 0 0 1 2.07.77l2.93 2.76A2 2 0 0 1 19 12v3.5"
-                        />
-                        <path
-                            d="M7 15.5h10a1.5 1.5 0 0 1 1.5 1.5v.5H5.5V17A1.5 1.5 0 0 1 7 15.5Z"
-                        />
-                        <circle cx="8" cy="18.25" r="1.25" />
-                        <circle cx="16" cy="18.25" r="1.25" />
-                    </svg>
+                    <span
+                        class="nav-item__icon nav-item__icon--vehicle"
+                        aria-hidden="true"
+                    ></span>
                     <span>Pojazd</span>
                 </button>
                 <button
@@ -1084,11 +1089,10 @@
                     type="button"
                     data-nav-view="history"
                 >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 8v5l3 2" />
-                        <path d="M3 12a9 9 0 1 0 3-6.71" />
-                        <path d="M3 4v4h4" />
-                    </svg>
+                    <span
+                        class="nav-item__icon nav-item__icon--history"
+                        aria-hidden="true"
+                    ></span>
                     <span>Historia</span>
                 </button>
                 <button
@@ -1096,14 +1100,10 @@
                     type="button"
                     data-placeholder="Sekcja czesci jest w przygotowaniu"
                 >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="m14.5 6.5 3 3" />
-                        <path
-                            d="M8.5 17.5a3 3 0 0 1 0-4.24l6.26-6.26a3 3 0 1 1 4.24 4.24l-6.26 6.26a3 3 0 0 1-4.24 0Z"
-                        />
-                        <path d="M6 21l3.25-3.25" />
-                        <path d="m3 18 3 3" />
-                    </svg>
+                    <span
+                        class="nav-item__icon nav-item__icon--parts"
+                        aria-hidden="true"
+                    ></span>
                     <span>Części</span>
                 </button>
                 <button
@@ -1112,10 +1112,10 @@
                     type="button"
                     data-nav-view="profile"
                 >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
-                        <path d="M5 20a7 7 0 0 1 14 0" />
-                    </svg>
+                    <span
+                        class="nav-item__icon nav-item__icon--vehicles"
+                        aria-hidden="true"
+                    ></span>
                     <span>Pojazdy</span>
                 </button>
             </nav>

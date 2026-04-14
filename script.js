@@ -79,6 +79,17 @@ const HISTORY_STORAGE_PREFIX = "car-info-history-v2";
 const HISTORY_FIREBASE_SEEDED_PREFIX = "car-info-history-seeded-v2";
 const PROFILE_STORAGE_PREFIX = "car-info-profile-v2";
 const FIREBASE_CAR_DOC_ID = "seat-ibiza-2007-1-9-tdi";
+const BACKUP_SCHEMA_VERSION = 1;
+const DEFAULT_MAINTENANCE_INTERVALS = {
+    oil: {
+        mileage: 10000,
+        months: 12,
+    },
+    timing: {
+        mileage: 60000,
+        months: 60,
+    },
+};
 const POLISH_MONTHS = [
     "Sty",
     "Lut",
@@ -100,11 +111,18 @@ const carEngine = document.getElementById("car-engine");
 const dashboardView = document.getElementById("dashboard-view");
 const historyView = document.getElementById("history-view");
 const profileView = document.getElementById("profile-view");
+const settingsView = document.getElementById("settings-view");
 const statusGrid = document.getElementById("status-grid");
 const historyTitle = document.getElementById("history-title");
 const historyPageHeading = document.getElementById("history-page-heading");
 const openHistoryViewButton = document.getElementById(
     "open-history-view-button",
+);
+const openSettingsViewButton = document.getElementById(
+    "open-settings-view-button",
+);
+const closeSettingsViewButton = document.getElementById(
+    "close-settings-view-button",
 );
 const timeline = document.getElementById("timeline");
 const historyPageList = document.getElementById("history-page-list");
@@ -143,7 +161,35 @@ const vehicleTimingMileageInput = document.getElementById(
 );
 const vehicleTimingDateInput = document.getElementById("vehicle-timing-date");
 const vehicleSubmitButton = document.getElementById("vehicle-submit-button");
-const profileSignOutButton = document.getElementById("profile-sign-out-button");
+const settingsVehicleHint = document.getElementById("settings-vehicle-hint");
+const settingsIntervalsPill = document.getElementById(
+    "settings-intervals-pill",
+);
+const settingsIntervalEmpty = document.getElementById(
+    "settings-interval-empty",
+);
+const settingsIntervalForm = document.getElementById("settings-interval-form");
+const settingsOilIntervalKmInput = document.getElementById(
+    "settings-oil-interval-km",
+);
+const settingsOilIntervalMonthsInput = document.getElementById(
+    "settings-oil-interval-months",
+);
+const settingsTimingIntervalKmInput = document.getElementById(
+    "settings-timing-interval-km",
+);
+const settingsTimingIntervalMonthsInput = document.getElementById(
+    "settings-timing-interval-months",
+);
+const settingsIntervalSubmitButton = document.getElementById(
+    "settings-interval-submit-button",
+);
+const settingsSignOutButton = document.getElementById(
+    "settings-sign-out-button",
+);
+const settingsExportButton = document.getElementById("settings-export-button");
+const settingsImportButton = document.getElementById("settings-import-button");
+const settingsImportInput = document.getElementById("settings-import-input");
 const navDashboard = document.getElementById("nav-dashboard");
 const navHistory = document.getElementById("nav-history");
 const navProfile = document.getElementById("nav-profile");
@@ -198,11 +244,15 @@ let currentUser = null;
 let authReady = false;
 let authBusy = false;
 let profileSyncMode = "local";
+let previousMainView = "dashboard";
 let hasShownHistorySyncError = false;
 let hasShownProfileSyncError = false;
 let historyUnsubscribe = null;
 let profileUnsubscribe = null;
 let profileSyncRevision = 0;
+let settingsIntervalBusy = false;
+let settingsSyncBusy = false;
+let settingsBackupBusy = false;
 let todos = loadTodos();
 let profileSettings = loadProfileSettings();
 let historyEntries = loadHistoryCache();
@@ -332,23 +382,72 @@ function getStatusNextMileageMarkup(nextMileageLabel) {
     `;
 }
 
+function getMaintenanceIntervalKeys(kind) {
+    if (kind === "oil") {
+        return {
+            mileageKey: "oilChangeIntervalKm",
+            monthsKey: "oilChangeIntervalMonths",
+        };
+    }
+
+    if (kind === "timing") {
+        return {
+            mileageKey: "timingDriveIntervalKm",
+            monthsKey: "timingDriveIntervalMonths",
+        };
+    }
+
+    return null;
+}
+
+function getMaintenanceIntervalDefaults(kind) {
+    return DEFAULT_MAINTENANCE_INTERVALS[kind] || DEFAULT_MAINTENANCE_INTERVALS.oil;
+}
+
+function getVehicleMaintenanceInterval(vehicle, kind) {
+    const intervalKeys = getMaintenanceIntervalKeys(kind);
+    const defaults = getMaintenanceIntervalDefaults(kind);
+
+    if (!intervalKeys || !vehicle || typeof vehicle !== "object") {
+        return defaults;
+    }
+
+    const mileage = Number(vehicle[intervalKeys.mileageKey]);
+    const months = Number(vehicle[intervalKeys.monthsKey]);
+
+    return {
+        mileage:
+            Number.isFinite(mileage) && mileage > 0
+                ? Math.round(mileage)
+                : defaults.mileage,
+        months:
+            Number.isFinite(months) && months > 0
+                ? Math.round(months)
+                : defaults.months,
+    };
+}
+
 function getOilStatusPresentation(vehicle, currentMileage) {
+    const interval = getVehicleMaintenanceInterval(vehicle, "oil");
+
     return getMaintenanceStatusPresentation({
         currentMileage,
         lastMileage: vehicle.oilChangeMileage,
         lastDate: vehicle.oilChangeDate,
-        intervalMileage: 10000,
-        intervalYears: 1,
+        intervalMileage: interval.mileage,
+        intervalMonths: interval.months,
     });
 }
 
 function getTimingStatusPresentation(vehicle, currentMileage) {
+    const interval = getVehicleMaintenanceInterval(vehicle, "timing");
+
     return getMaintenanceStatusPresentation({
         currentMileage,
         lastMileage: vehicle.timingDriveMileage,
         lastDate: vehicle.timingDriveDate,
-        intervalMileage: 60000,
-        intervalYears: 5,
+        intervalMileage: interval.mileage,
+        intervalMonths: interval.months,
     });
 }
 
@@ -357,7 +456,7 @@ function getMaintenanceStatusPresentation({
     lastMileage,
     lastDate,
     intervalMileage,
-    intervalYears,
+    intervalMonths,
 }) {
     const normalizedLastMileage = Number(lastMileage);
     const normalizedLastDate = normalizeIsoDate(lastDate);
@@ -365,13 +464,17 @@ function getMaintenanceStatusPresentation({
     if (
         !Number.isFinite(normalizedLastMileage) ||
         normalizedLastMileage < 0 ||
-        !normalizedLastDate
+        !normalizedLastDate ||
+        !Number.isFinite(intervalMileage) ||
+        intervalMileage <= 0 ||
+        !Number.isFinite(intervalMonths) ||
+        intervalMonths <= 0
     ) {
         return null;
     }
 
     const nextMileage = normalizedLastMileage + intervalMileage;
-    const nextDate = addYearsToIsoDate(normalizedLastDate, intervalYears);
+    const nextDate = addMonthsToIsoDate(normalizedLastDate, intervalMonths);
 
     return {
         valueMileageLabel: formatMileage(normalizedLastMileage),
@@ -401,9 +504,9 @@ function getMileageProgress(currentMileage, lastMileage, intervalMileage) {
     return Math.min(Math.max(progress, 0), 100);
 }
 
-function addYearsToIsoDate(value, yearsToAdd) {
+function addMonthsToIsoDate(value, monthsToAdd) {
     const [year, month, day] = value.split("-").map(Number);
-    const nextDate = new Date(year + yearsToAdd, month - 1, day);
+    const nextDate = new Date(year, month - 1 + monthsToAdd, day);
     const nextMonth = String(nextDate.getMonth() + 1).padStart(2, "0");
     const nextDay = String(nextDate.getDate()).padStart(2, "0");
 
@@ -637,6 +740,114 @@ function renderProfileSummary() {
     const vehicles = getProfileVehicles();
 
     renderVehicleManager(vehicles, selectedVehicle.id);
+    renderSettingsView();
+}
+
+function renderSettingsView() {
+    if (!settingsView) {
+        return;
+    }
+
+    const selectedVehicle = getSelectedVehicle();
+    const hasVehicle = hasActiveVehicle();
+    const oilInterval = getVehicleMaintenanceInterval(selectedVehicle, "oil");
+    const timingInterval = getVehicleMaintenanceInterval(
+        selectedVehicle,
+        "timing",
+    );
+
+    if (settingsIntervalsPill) {
+        settingsIntervalsPill.textContent = hasVehicle
+            ? normalizeText(selectedVehicle.name, 22) || "Aktywny pojazd"
+            : "Brak pojazdu";
+    }
+
+    if (settingsVehicleHint) {
+        settingsVehicleHint.textContent = hasVehicle
+            ? `Aktywny pojazd: ${formatVehicleMeta(selectedVehicle)}`
+            : "Interwały zapisują się osobno dla każdego pojazdu.";
+    }
+
+    if (settingsIntervalEmpty) {
+        settingsIntervalEmpty.hidden = hasVehicle;
+    }
+
+    if (settingsIntervalForm) {
+        settingsIntervalForm.hidden = !hasVehicle;
+    }
+
+    if (settingsOilIntervalKmInput) {
+        settingsOilIntervalKmInput.value = hasVehicle
+            ? String(oilInterval.mileage)
+            : "";
+    }
+
+    if (settingsOilIntervalMonthsInput) {
+        settingsOilIntervalMonthsInput.value = hasVehicle
+            ? String(oilInterval.months)
+            : "";
+    }
+
+    if (settingsTimingIntervalKmInput) {
+        settingsTimingIntervalKmInput.value = hasVehicle
+            ? String(timingInterval.mileage)
+            : "";
+    }
+
+    if (settingsTimingIntervalMonthsInput) {
+        settingsTimingIntervalMonthsInput.value = hasVehicle
+            ? String(timingInterval.months)
+            : "";
+    }
+
+    if (settingsIntervalSubmitButton) {
+        settingsIntervalSubmitButton.disabled = !hasVehicle || settingsIntervalBusy;
+        settingsIntervalSubmitButton.textContent = settingsIntervalBusy
+            ? "Zapisywanie..."
+            : "Zapisz interwały";
+    }
+
+    if (settingsSignOutButton) {
+        settingsSignOutButton.hidden = !currentUser;
+        settingsSignOutButton.disabled = authBusy || settingsSyncBusy;
+    }
+
+    if (settingsExportButton) {
+        settingsExportButton.disabled = settingsBackupBusy;
+        settingsExportButton.textContent = settingsBackupBusy
+            ? "Przetwarzanie..."
+            : "Eksportuj kopię";
+    }
+
+    if (settingsImportButton) {
+        settingsImportButton.disabled = settingsBackupBusy;
+        settingsImportButton.textContent = settingsBackupBusy
+            ? "Przetwarzanie..."
+            : "Importuj kopię";
+    }
+}
+
+function setSettingsIntervalBusy(isBusy) {
+    settingsIntervalBusy = isBusy;
+    renderSettingsView();
+}
+
+function setSettingsSyncBusy(isBusy) {
+    settingsSyncBusy = isBusy;
+    renderSettingsView();
+}
+
+function setSettingsBackupBusy(isBusy) {
+    settingsBackupBusy = isBusy;
+    renderSettingsView();
+}
+
+function openSettingsView() {
+    setActiveView("settings");
+}
+
+function closeSettingsView() {
+    setActiveView(previousMainView || "dashboard");
 }
 
 function renderVehicleManager(vehicles, selectedVehicleId) {
@@ -761,6 +972,7 @@ function updateAuthUi() {
         !authRegisterButton ||
         !authSignOutButton
     ) {
+        renderSettingsView();
         return;
     }
 
@@ -772,6 +984,7 @@ function updateAuthUi() {
             authForm.hidden = true;
         }
         authSignOutButton.hidden = true;
+        renderSettingsView();
         return;
     }
 
@@ -797,6 +1010,7 @@ function updateAuthUi() {
         authSignInButton.textContent = "Ładowanie...";
         authRegisterButton.textContent = "Tworzenie...";
         authSignOutButton.hidden = true;
+        renderSettingsView();
         return;
     }
 
@@ -814,6 +1028,7 @@ function updateAuthUi() {
             authCardEyebrow.textContent = "Konto";
         }
         authSignOutButton.hidden = true;
+        renderSettingsView();
         return;
     }
 
@@ -830,6 +1045,7 @@ function updateAuthUi() {
     authSignInButton.textContent = authBusy ? "Logowanie..." : "Zaloguj";
     authRegisterButton.textContent = authBusy ? "Tworzenie..." : "Utwórz konto";
     authSignOutButton.hidden = true;
+    renderSettingsView();
 }
 
 function updateProfileViewState({ isAuthenticated, authAvailable }) {
@@ -841,10 +1057,6 @@ function updateProfileViewState({ isAuthenticated, authAvailable }) {
 
     if (profileVehiclesCard) {
         profileVehiclesCard.hidden = false;
-    }
-
-    if (profileSignOutButton) {
-        profileSignOutButton.hidden = !isAuthenticated;
     }
 
     if (openAuthModalButton) {
@@ -876,10 +1088,15 @@ function setupNavigation() {
         [navHistory, "history"],
         [navProfile, "profile"],
         [openHistoryViewButton, "history"],
+        [openSettingsViewButton, "settings"],
     ].forEach(([button, view]) => {
         button?.addEventListener("click", () => {
             setActiveView(view);
         });
+    });
+
+    closeSettingsViewButton?.addEventListener("click", () => {
+        closeSettingsView();
     });
 }
 
@@ -1062,11 +1279,117 @@ function setupVehicleActions() {
         event.preventDefault();
         await addVehicleProfile();
     });
+}
 
-    profileSignOutButton?.addEventListener("click", async () => {
-        await signOutFromFirebase();
-        setActiveView("profile");
+function setupSettingsActions() {
+    settingsIntervalForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await saveSettingsIntervals();
     });
+
+    settingsSignOutButton?.addEventListener("click", async () => {
+        await signOutFromFirebase();
+    });
+
+    settingsExportButton?.addEventListener("click", () => {
+        try {
+            setSettingsBackupBusy(true);
+            downloadBackupSnapshot(createBackupSnapshot());
+            showToast("Wyeksportowano kopię danych.");
+        } catch (error) {
+            console.error("Unable to export backup snapshot.", error);
+            showToast("Nie udało się wyeksportować kopii danych.");
+        } finally {
+            setSettingsBackupBusy(false);
+        }
+    });
+
+    settingsImportButton?.addEventListener("click", () => {
+        settingsImportInput?.click();
+    });
+
+    settingsImportInput?.addEventListener("change", async (event) => {
+        const file = event.target.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        await importBackupFile(file);
+        event.target.value = "";
+    });
+}
+
+async function saveSettingsIntervals() {
+    if (!hasActiveVehicle() || !settingsIntervalForm) {
+        return;
+    }
+
+    if (!settingsIntervalForm.reportValidity()) {
+        return;
+    }
+
+    const oilIntervalKm = Number(settingsOilIntervalKmInput?.value || 0);
+    const oilIntervalMonths = Number(settingsOilIntervalMonthsInput?.value || 0);
+    const timingIntervalKm = Number(settingsTimingIntervalKmInput?.value || 0);
+    const timingIntervalMonths = Number(
+        settingsTimingIntervalMonthsInput?.value || 0,
+    );
+
+    if (!Number.isFinite(oilIntervalKm) || oilIntervalKm <= 0) {
+        showToast("Podaj prawidłowy interwał km dla oleju.");
+        settingsOilIntervalKmInput?.focus();
+        return;
+    }
+
+    if (!Number.isFinite(oilIntervalMonths) || oilIntervalMonths <= 0) {
+        showToast("Podaj prawidłowy interwał miesięcy dla oleju.");
+        settingsOilIntervalMonthsInput?.focus();
+        return;
+    }
+
+    if (!Number.isFinite(timingIntervalKm) || timingIntervalKm <= 0) {
+        showToast("Podaj prawidłowy interwał km dla rozrządu.");
+        settingsTimingIntervalKmInput?.focus();
+        return;
+    }
+
+    if (
+        !Number.isFinite(timingIntervalMonths) ||
+        timingIntervalMonths <= 0
+    ) {
+        showToast("Podaj prawidłowy interwał miesięcy dla rozrządu.");
+        settingsTimingIntervalMonthsInput?.focus();
+        return;
+    }
+
+    const selectedVehicleId = getSelectedVehicleId();
+    const nextVehicles = getProfileVehicles().map((vehicle) =>
+        vehicle.id === selectedVehicleId
+            ? {
+                  ...vehicle,
+                  oilChangeIntervalKm: Math.round(oilIntervalKm),
+                  oilChangeIntervalMonths: Math.round(oilIntervalMonths),
+                  timingDriveIntervalKm: Math.round(timingIntervalKm),
+                  timingDriveIntervalMonths: Math.round(timingIntervalMonths),
+              }
+            : vehicle,
+    );
+
+    setSettingsIntervalBusy(true);
+
+    const savedTo = await persistProfileSettings({
+        ...profileSettings,
+        vehicles: nextVehicles,
+        updatedAt: Date.now(),
+    });
+
+    setSettingsIntervalBusy(false);
+    showToast(
+        savedTo === "firebase"
+            ? "Zapisano interwały serwisowe."
+            : "Zapisano interwały lokalnie.",
+    );
 }
 
 async function changeSelectedVehicle(vehicleId) {
@@ -1309,6 +1632,67 @@ function requireAuthenticatedHistoryAccess() {
     return false;
 }
 
+function stopActiveSyncListeners() {
+    if (typeof historyUnsubscribe === "function") {
+        historyUnsubscribe();
+        historyUnsubscribe = null;
+    }
+
+    if (typeof profileUnsubscribe === "function") {
+        profileUnsubscribe();
+        profileUnsubscribe = null;
+    }
+}
+
+async function syncCurrentStateToFirebase() {
+    const firebaseState = window.carInfoFirebase;
+    const userDocument = getUserDocument();
+    const vehicleCollection = getVehicleCollection();
+
+    if (!firebaseState?.db || !firebaseState?.auth) {
+        profileSyncMode = "local";
+        renderProfileSummary();
+        return "local";
+    }
+
+    if (!currentUser || !userDocument || !vehicleCollection) {
+        profileSyncMode = "guest";
+        renderProfileSummary();
+        return "guest";
+    }
+
+    const vehicleIds = new Set(
+        getProfileVehicles().map((vehicle) => vehicle.id),
+    );
+
+    setSettingsSyncBusy(true);
+    profileSyncMode = "syncing";
+    renderProfileSummary();
+
+    try {
+        const synced = await writeProfileSettingsToFirebase(profileSettings, {
+            historyByVehicleId: normalizeHistoryStorageState(
+                getHistoryStorageState(),
+                vehicleIds,
+            ),
+        });
+
+        if (synced) {
+            hasShownProfileSyncError = false;
+            hasShownHistorySyncError = false;
+            profileSyncMode = "firebase";
+            renderProfileSummary();
+            return "firebase";
+        }
+
+        profileSyncMode = "error";
+        renderProfileSummary();
+        return "error";
+    } finally {
+        setSettingsSyncBusy(false);
+    }
+}
+
 function restartHistorySync() {
     if (typeof historyUnsubscribe === "function") {
         historyUnsubscribe();
@@ -1364,11 +1748,18 @@ function refreshVehicleContext({ restartHistory = false } = {}) {
 }
 
 function setActiveView(viewName) {
+    if (viewName === "settings") {
+        previousMainView = currentView === "settings" ? previousMainView : currentView;
+    } else {
+        previousMainView = viewName;
+    }
+
     currentView = viewName;
 
     dashboardView.hidden = viewName !== "dashboard";
     historyView.hidden = viewName !== "history";
     profileView.hidden = viewName !== "profile";
+    settingsView.hidden = viewName !== "settings";
 
     navDashboard.classList.toggle("nav-item--active", viewName === "dashboard");
     navHistory.classList.toggle("nav-item--active", viewName === "history");
@@ -1725,10 +2116,7 @@ function saveHistoryCache() {
         const historyState = getHistoryStorageState();
 
         historyState[selectedVehicleId] = historyEntries;
-        window.localStorage.setItem(
-            getHistoryStorageKey(),
-            JSON.stringify(historyState),
-        );
+        writeHistoryStorageState(historyState);
     } catch (error) {
         console.error("Unable to save service history cache.", error);
     }
@@ -2411,36 +2799,45 @@ function sortHistoryEntries(entries) {
     });
 }
 
+function createDefaultTodoList() {
+    return appData.todos.map((item) => ({ ...item, completed: false }));
+}
+
+function normalizeTodoEntries(entries) {
+    if (!Array.isArray(entries)) {
+        return [];
+    }
+
+    return entries
+        .filter(
+            (item) =>
+                item &&
+                typeof item.id === "string" &&
+                typeof item.text === "string",
+        )
+        .map((item) => ({
+            id: item.id,
+            text: normalizeText(item.text, 80),
+            completed: Boolean(item.completed),
+        }))
+        .filter((item) => item.text.length > 0);
+}
+
 function loadTodos() {
     try {
         const storedTodos = window.localStorage.getItem(TODO_STORAGE_KEY);
 
         if (!storedTodos) {
-            return appData.todos.map((item) => ({ ...item, completed: false }));
+            return createDefaultTodoList();
         }
 
         const parsedTodos = JSON.parse(storedTodos);
+        const normalizedTodos = normalizeTodoEntries(parsedTodos);
 
-        if (!Array.isArray(parsedTodos)) {
-            return appData.todos.map((item) => ({ ...item, completed: false }));
-        }
-
-        return parsedTodos
-            .filter(
-                (item) =>
-                    item &&
-                    typeof item.id === "string" &&
-                    typeof item.text === "string",
-            )
-            .map((item) => ({
-                id: item.id,
-                text: normalizeText(item.text, 80),
-                completed: Boolean(item.completed),
-            }))
-            .filter((item) => item.text.length > 0);
+        return normalizedTodos.length ? normalizedTodos : createDefaultTodoList();
     } catch (error) {
         console.error("Unable to load todo list.", error);
-        return appData.todos.map((item) => ({ ...item, completed: false }));
+        return createDefaultTodoList();
     }
 }
 
@@ -2486,6 +2883,122 @@ function saveTodos() {
         window.localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(todos));
     } catch (error) {
         console.error("Unable to save todo list.", error);
+    }
+}
+
+function createBackupSnapshot() {
+    return {
+        schemaVersion: BACKUP_SCHEMA_VERSION,
+        exportedAt: new Date().toISOString(),
+        storageScope: getCurrentStorageScope(),
+        profile: normalizeProfileSettings(profileSettings),
+        historyByVehicleId: normalizeHistoryStorageState(getHistoryStorageState()),
+        todos: normalizeTodoEntries(todos),
+    };
+}
+
+function downloadBackupSnapshot(snapshot) {
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], {
+        type: "application/json",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const downloadLink = document.createElement("a");
+
+    downloadLink.href = url;
+    downloadLink.download = `car-info-backup-${getTodayIsoDate()}.json`;
+    document.body.append(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+    window.URL.revokeObjectURL(url);
+}
+
+function normalizeBackupSnapshot(snapshot) {
+    if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
+        return null;
+    }
+
+    if (!snapshot.profile || typeof snapshot.profile !== "object") {
+        return null;
+    }
+
+    const normalizedProfile = normalizeProfileSettings(snapshot.profile);
+    const vehicleIds = new Set(
+        normalizedProfile.vehicles.map((vehicle) => vehicle.id),
+    );
+
+    return {
+        profile: normalizedProfile,
+        historyByVehicleId: normalizeHistoryStorageState(
+            snapshot.historyByVehicleId,
+            vehicleIds,
+        ),
+        todos: normalizeTodoEntries(snapshot.todos),
+    };
+}
+
+async function importBackupFile(file) {
+    setSettingsBackupBusy(true);
+    let restartSyncAfterImport = false;
+
+    try {
+        const rawText = await file.text();
+        const parsedBackup = JSON.parse(rawText);
+        const importedBackup = normalizeBackupSnapshot(parsedBackup);
+
+        if (!importedBackup) {
+            showToast("Plik kopii danych ma nieprawidłowy format.");
+            return;
+        }
+
+        if (
+            !window.confirm(
+                "Import zastąpi lokalne pojazdy, historię i listę zadań dla bieżącego profilu. Kontynuować?",
+            )
+        ) {
+            return;
+        }
+
+        const shouldSyncToFirebase = Boolean(
+            currentUser && window.carInfoFirebase?.db && window.carInfoFirebase?.auth,
+        );
+
+        if (shouldSyncToFirebase) {
+            stopActiveSyncListeners();
+            restartSyncAfterImport = true;
+        }
+
+        profileSettings = importedBackup.profile;
+        todos = importedBackup.todos;
+        saveProfileSettings();
+        saveTodos();
+        writeHistoryStorageState(importedBackup.historyByVehicleId);
+        historyEntries = loadHistoryCache();
+
+        renderTodos();
+        refreshVehicleContext();
+
+        if (shouldSyncToFirebase) {
+            const synced = await syncCurrentStateToFirebase();
+
+            showToast(
+                synced === "firebase"
+                    ? "Zaimportowano kopię i zsynchronizowano dane z Firebase."
+                    : "Zaimportowano kopię lokalnie. Synchronizacja z Firebase nie odpowiedziała.",
+            );
+            return;
+        }
+
+        showToast("Zaimportowano kopię danych.");
+    } catch (error) {
+        console.error("Unable to import backup snapshot.", error);
+        showToast("Nie udało się zaimportować kopii danych.");
+    } finally {
+        if (restartSyncAfterImport) {
+            restartProfileSync();
+            restartHistorySync();
+        }
+
+        setSettingsBackupBusy(false);
     }
 }
 
@@ -2654,6 +3167,55 @@ function getHistoryStorageState() {
     }
 }
 
+function normalizeHistoryStorageState(historyState, allowedVehicleIds = null) {
+    if (
+        !historyState ||
+        typeof historyState !== "object" ||
+        Array.isArray(historyState)
+    ) {
+        return {};
+    }
+
+    const normalizedState = {};
+    const allowedIds = allowedVehicleIds instanceof Set ? allowedVehicleIds : null;
+
+    Object.entries(historyState).forEach(([vehicleId, entries]) => {
+        const normalizedVehicleId = normalizeVehicleReferenceId(vehicleId);
+
+        if (!normalizedVehicleId) {
+            return;
+        }
+
+        if (allowedIds && !allowedIds.has(normalizedVehicleId)) {
+            return;
+        }
+
+        if (!Array.isArray(entries)) {
+            normalizedState[normalizedVehicleId] = [];
+            return;
+        }
+
+        normalizedState[normalizedVehicleId] = sortHistoryEntries(
+            entries
+                .map((entry) => normalizeHistoryEntry(entry))
+                .filter(Boolean),
+        );
+    });
+
+    return normalizedState;
+}
+
+function writeHistoryStorageState(historyState) {
+    try {
+        window.localStorage.setItem(
+            getHistoryStorageKey(),
+            JSON.stringify(normalizeHistoryStorageState(historyState)),
+        );
+    } catch (error) {
+        console.error("Unable to write service history storage state.", error);
+    }
+}
+
 function getHistorySeedState() {
     try {
         const storedSeedState = readScopedStorageValue(
@@ -2788,8 +3350,12 @@ function createDefaultVehicleProfile() {
         mileage: getDefaultVehicleMileage(),
         oilChangeMileage: 198500,
         oilChangeDate: "2023-10-12",
+        oilChangeIntervalKm: DEFAULT_MAINTENANCE_INTERVALS.oil.mileage,
+        oilChangeIntervalMonths: DEFAULT_MAINTENANCE_INTERVALS.oil.months,
         timingDriveMileage: 165000,
         timingDriveDate: "2023-01-22",
+        timingDriveIntervalKm: DEFAULT_MAINTENANCE_INTERVALS.timing.mileage,
+        timingDriveIntervalMonths: DEFAULT_MAINTENANCE_INTERVALS.timing.months,
     };
 }
 
@@ -2822,6 +3388,9 @@ function normalizeVehicleProfile(vehicle) {
         return null;
     }
 
+    const oilInterval = getVehicleMaintenanceInterval(vehicle, "oil");
+    const timingInterval = getVehicleMaintenanceInterval(vehicle, "timing");
+
     const type =
         normalizeText(vehicle.type || "Auto", 20) === "Motocykl"
             ? "Motocykl"
@@ -2852,22 +3421,30 @@ function normalizeVehicleProfile(vehicle) {
                 ? Math.round(oilChangeMileage)
                 : null,
         oilChangeDate,
+        oilChangeIntervalKm: oilInterval.mileage,
+        oilChangeIntervalMonths: oilInterval.months,
         timingDriveMileage:
             Number.isFinite(timingDriveMileage) && timingDriveMileage >= 0
                 ? Math.round(timingDriveMileage)
                 : null,
         timingDriveDate,
+        timingDriveIntervalKm: timingInterval.mileage,
+        timingDriveIntervalMonths: timingInterval.months,
     };
 }
 
-function sanitizeVehicleId(value) {
-    const slug = String(value || "")
+function normalizeVehicleReferenceId(value) {
+    return String(value || "")
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "")
         .slice(0, 64);
+}
+
+function sanitizeVehicleId(value) {
+    const slug = normalizeVehicleReferenceId(value);
 
     if (slug) {
         return slug;
@@ -3150,6 +3727,7 @@ function init() {
     setupNavigation();
     setupMaintenanceActions();
     setupVehicleActions();
+    setupSettingsActions();
     setupTodoActions();
     setupHistoryActions();
     setupServiceEntryActions();

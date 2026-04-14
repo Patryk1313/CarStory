@@ -53,10 +53,10 @@
                             </div>
                         </div>
                         <button
+                            id="open-settings-view-button"
                             class="icon-button"
                             type="button"
-                            aria-label="Ustawienia"
-                            data-placeholder="Ustawienia beda dostepne pozniej"
+                            aria-label="Otwórz ustawienia"
                         >
                             <svg viewBox="0 0 24 24" aria-hidden="true">
                                 <path
@@ -489,15 +489,249 @@
                             >
                                 Zaloguj do Firebase
                             </button>
-                            <button
-                                id="profile-sign-out-button"
-                                class="profile-sign-out"
-                                type="button"
-                            >
-                                Wyloguj
-                            </button>
                         </div>
                     </section>
+                </section>
+
+                <section
+                    id="settings-view"
+                    class="view"
+                    data-view="settings"
+                    hidden
+                >
+                    <section
+                        class="page-hero page-hero--settings"
+                        aria-labelledby="settings-page-heading"
+                    >
+                        <div class="section-heading">
+                            <h1
+                                id="settings-page-heading"
+                                class="page-hero__title"
+                            >
+                                Ustawienia
+                            </h1>
+                            <p class="section-subtitle page-hero__subtitle">
+                                Interwały serwisowe i kopia danych aplikacji.
+                            </p>
+                        </div>
+                        <button
+                            id="close-settings-view-button"
+                            class="icon-button icon-button--accent"
+                            type="button"
+                            aria-label="Wróć do dashboardu"
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M15 18 9 12l6-6" />
+                            </svg>
+                        </button>
+                    </section>
+
+                    <section
+                        class="profile-card settings-card"
+                        aria-labelledby="settings-intervals-title"
+                    >
+                        <header class="section-header">
+                            <div class="section-heading">
+                                <h2 id="settings-intervals-title">
+                                    Interwały serwisowe
+                                </h2>
+                                <p
+                                    id="settings-vehicle-hint"
+                                    class="section-subtitle"
+                                >
+                                    Ustawienia dla aktywnego pojazdu.
+                                </p>
+                            </div>
+                            <span
+                                id="settings-intervals-pill"
+                                class="summary-pill"
+                            >
+                                Brak pojazdu
+                            </span>
+                        </header>
+
+                        <p id="settings-interval-empty" class="todo-empty" hidden>
+                            Dodaj pojazd w sekcji Pojazdy, aby ustawić własne
+                            terminy serwisowe.
+                        </p>
+
+                        <form
+                            id="settings-interval-form"
+                            class="profile-form settings-form"
+                            hidden
+                        >
+                            <div class="settings-maintenance-grid">
+                                <section
+                                    class="settings-maintenance-card"
+                                    aria-labelledby="settings-oil-title"
+                                >
+                                    <header class="settings-maintenance-card__header">
+                                        <h3 id="settings-oil-title">
+                                            Olej silnikowy
+                                        </h3>
+                                        <p>
+                                            Po ilu kilometrach lub miesiącach
+                                            karta ma zgłaszać kolejny serwis.
+                                        </p>
+                                    </header>
+
+                                    <div class="service-form__grid settings-grid">
+                                        <label class="field">
+                                            <span class="field__label">
+                                                Interwał km
+                                            </span>
+                                            <input
+                                                id="settings-oil-interval-km"
+                                                class="service-input"
+                                                type="number"
+                                                min="1"
+                                                step="1"
+                                                placeholder="Np. 10000"
+                                                inputmode="numeric"
+                                                required
+                                            />
+                                        </label>
+
+                                        <label class="field">
+                                            <span class="field__label">
+                                                Interwał miesięcy
+                                            </span>
+                                            <input
+                                                id="settings-oil-interval-months"
+                                                class="service-input"
+                                                type="number"
+                                                min="1"
+                                                step="1"
+                                                placeholder="Np. 12"
+                                                inputmode="numeric"
+                                                required
+                                            />
+                                        </label>
+                                    </div>
+                                </section>
+
+                                <section
+                                    class="settings-maintenance-card"
+                                    aria-labelledby="settings-timing-title"
+                                >
+                                    <header class="settings-maintenance-card__header">
+                                        <h3 id="settings-timing-title">
+                                            Napęd rozrządu
+                                        </h3>
+                                        <p>
+                                            Ustaw własny przebieg i okres dla
+                                            kolejnej wymiany rozrządu.
+                                        </p>
+                                    </header>
+
+                                    <div class="service-form__grid settings-grid">
+                                        <label class="field">
+                                            <span class="field__label">
+                                                Interwał km
+                                            </span>
+                                            <input
+                                                id="settings-timing-interval-km"
+                                                class="service-input"
+                                                type="number"
+                                                min="1"
+                                                step="1"
+                                                placeholder="Np. 60000"
+                                                inputmode="numeric"
+                                                required
+                                            />
+                                        </label>
+
+                                        <label class="field">
+                                            <span class="field__label">
+                                                Interwał miesięcy
+                                            </span>
+                                            <input
+                                                id="settings-timing-interval-months"
+                                                class="service-input"
+                                                type="number"
+                                                min="1"
+                                                step="1"
+                                                placeholder="Np. 60"
+                                                inputmode="numeric"
+                                                required
+                                            />
+                                        </label>
+                                    </div>
+                                </section>
+                            </div>
+
+                            <p class="profile-note settings-form__note">
+                                Terminy na dashboardzie przeliczają się od razu
+                                na podstawie ostatniej wymiany i tych wartości.
+                            </p>
+
+                            <div class="vehicle-form__footer">
+                                <button
+                                    id="settings-interval-submit-button"
+                                    class="profile-save"
+                                    type="submit"
+                                >
+                                    Zapisz interwały
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section
+                        class="profile-card settings-card"
+                        aria-labelledby="settings-backup-title"
+                    >
+                        <header class="section-header">
+                            <div class="section-heading">
+                                <h2 id="settings-backup-title">Kopia danych</h2>
+                                <p class="section-subtitle">
+                                    Eksport i import pojazdów, historii oraz
+                                    listy zadań dla bieżącego profilu.
+                                </p>
+                            </div>
+                        </header>
+
+                        <input
+                            id="settings-import-input"
+                            class="sr-only"
+                            type="file"
+                            accept="application/json"
+                        />
+
+                        <div class="settings-actions-grid settings-actions-grid--split">
+                            <button
+                                id="settings-export-button"
+                                class="vehicle-action vehicle-action--select"
+                                type="button"
+                            >
+                                Eksportuj kopię
+                            </button>
+                            <button
+                                id="settings-import-button"
+                                class="vehicle-action"
+                                type="button"
+                            >
+                                Importuj kopię
+                            </button>
+                        </div>
+
+                        <p class="profile-note">
+                            Import zastąpi lokalne dane bieżącego profilu. Jeśli
+                            jesteś zalogowany, aplikacja od razu spróbuje
+                            zsynchronizować import z Firebase.
+                        </p>
+                    </section>
+
+                    <div class="settings-footer">
+                        <button
+                            id="settings-sign-out-button"
+                            class="profile-sign-out settings-bottom-sign-out"
+                            type="button"
+                            hidden
+                        >
+                            Wyloguj
+                        </button>
+                    </div>
                 </section>
             </main>
 

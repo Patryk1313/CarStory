@@ -370,19 +370,6 @@ button {
     padding-top: 16px;
 }
 
-.vehicle-dropdown .service-input,
-.vehicle-dropdown .service-textarea {
-    border-color: #dce5ef;
-    background: #ffffff;
-}
-
-.vehicle-dropdown .service-input:focus,
-.vehicle-dropdown .service-textarea:focus {
-    border-color: rgba(13, 33, 69, 0.18);
-    box-shadow: 0 0 0 4px rgba(13, 33, 69, 0.08);
-    background: #ffffff;
-}
-
 .vehicle-form {
     gap: 16px;
 }
@@ -622,6 +609,278 @@ button {
     font-size: 0.8rem;
     line-height: 1.45;
     color: #7d889c;
+}
+
+.settings-card {
+    padding: 0 0 22px;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+}
+
+.settings-card + .settings-card {
+    margin-top: 22px;
+    padding-top: 22px;
+    border-top: 1px solid #e5eaf1;
+}
+
+.settings-card .section-header {
+    display: grid;
+    justify-content: start;
+    gap: 7px;
+    margin-bottom: 16px;
+}
+
+#settings-view .page-hero {
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+#settings-view .page-hero__title {
+    font-size: 1.72rem;
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+
+#settings-view .page-hero__subtitle {
+    max-width: none;
+    margin-top: 4px;
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+#settings-view .icon-button--accent {
+    border: 1px solid #e1e8f0;
+    background: transparent;
+    color: #6b778c;
+    box-shadow: none;
+}
+
+#settings-view .icon-button--accent svg {
+    stroke-width: 1.8;
+}
+
+.settings-card .section-header h2 {
+    font-size: 1.08rem;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.settings-card .section-subtitle,
+.settings-card .profile-note {
+    max-width: none;
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: #77849a;
+}
+
+.settings-card .profile-note + .profile-note {
+    margin-top: 4px;
+}
+
+.settings-card .summary-pill {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    justify-self: start;
+    padding: 0;
+    min-height: auto;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: #5f738f;
+    font-size: 0.76rem;
+    line-height: 1.35;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.settings-form {
+    gap: 20px;
+}
+
+.settings-form .service-input {
+    box-shadow: none;
+}
+
+.settings-form__note {
+    margin-top: 0;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.settings-maintenance-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.settings-maintenance-card {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.settings-maintenance-card + .settings-maintenance-card {
+    padding-top: 20px;
+    border-top: 1px solid #edf1f5;
+}
+
+.settings-maintenance-card__header {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 14px;
+}
+
+.settings-maintenance-card__header h3 {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.settings-maintenance-card__header p {
+    margin: 0;
+    font-size: 0.74rem;
+    line-height: 1.45;
+    color: #74839a;
+}
+
+.settings-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+.settings-grid .field {
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.settings-grid .field:focus-within {
+    background: transparent;
+}
+
+.settings-grid .field__label {
+    font-size: 0.8rem;
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: #5f6b7a;
+    text-transform: none;
+}
+
+.settings-form .settings-grid .service-input {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.settings-form .settings-grid .service-input::-webkit-outer-spin-button,
+.settings-form .settings-grid .service-input::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.settings-form .vehicle-form__footer {
+    gap: 0;
+    padding-top: 16px;
+    border-top: 1px solid #edf1f5;
+}
+
+.settings-actions-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-top: 14px;
+    border-top: 1px solid #edf1f5;
+}
+
+.settings-actions-grid--split {
+    grid-template-columns: 1fr;
+}
+
+.settings-actions-grid .vehicle-action,
+#settings-interval-submit-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 0 12px;
+    text-align: left;
+    box-shadow: none;
+}
+
+.settings-actions-grid .vehicle-action {
+    min-height: 48px;
+    border: 0;
+    border-bottom: 1px solid #edf1f5;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text);
+}
+
+.settings-actions-grid > :last-child {
+    border-bottom: 0;
+}
+
+.settings-footer {
+    padding-top: 18px;
+    border-top: 1px solid #e5eaf1;
+}
+
+.settings-bottom-sign-out {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid rgba(255, 138, 31, 0.24);
+    border-radius: 12px;
+    background: #fffaf4;
+    color: #b76817;
+    font-size: 0.88rem;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.settings-bottom-sign-out:disabled {
+    opacity: 0.6;
+}
+
+#settings-interval-submit-button {
+    min-height: 46px;
+    border: 1px solid #111827;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+#settings-interval-submit-button:disabled {
+    opacity: 0.58;
+}
+
+#settings-view .icon-button,
+#settings-view .icon-button--accent {
+    box-shadow: none;
+}
+
+#settings-view .vehicle-action:active,
+#settings-view .settings-bottom-sign-out:active,
+#settings-view .profile-save:active {
+    transform: none;
 }
 
 .auth-button,
@@ -1214,15 +1473,16 @@ button {
 
 .todo-input {
     width: 100%;
-    min-height: 46px;
-    border: 1px solid #dee7f2;
-    border-radius: 14px;
-    padding: 0 14px;
-    background: #f9fbfe;
-    color: var(--text);
+    min-height: 42px;
+    border: 1px solid #dbe3ec;
+    border-radius: 10px;
+    padding: 0 12px;
+    background: #fafbfd;
+    color: #111827;
     font: inherit;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     outline: none;
+    box-shadow: none;
     transition:
         border-color 180ms ease,
         box-shadow 180ms ease,
@@ -1230,13 +1490,13 @@ button {
 }
 
 .todo-input::placeholder {
-    color: #8a96aa;
+    color: #a3adba;
 }
 
 .todo-input:focus {
-    border-color: rgba(255, 215, 0, 0.45);
-    box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.18);
-    background: var(--surface);
+    border-color: #c7d2df;
+    box-shadow: 0 0 0 3px rgba(219, 227, 236, 0.42);
+    background: #ffffff;
 }
 
 .todo-submit {
@@ -1486,13 +1746,14 @@ button {
 .service-input,
 .service-textarea {
     width: 100%;
-    border: 1px solid #dee7f2;
-    border-radius: 14px;
-    background: #f9fbfe;
-    color: var(--text);
+    border: 1px solid #dbe3ec;
+    border-radius: 10px;
+    background: #fafbfd;
+    color: #111827;
     font: inherit;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     outline: none;
+    box-shadow: none;
     transition:
         border-color 180ms ease,
         box-shadow 180ms ease,
@@ -1500,38 +1761,25 @@ button {
 }
 
 .service-input {
-    min-height: 46px;
-    padding: 0 14px;
+    min-height: 42px;
+    padding: 0 12px;
 }
 
 .service-textarea {
     min-height: 112px;
-    padding: 12px 14px;
+    padding: 12px;
     resize: vertical;
 }
 
 .service-input::placeholder,
 .service-textarea::placeholder {
-    color: #8a96aa;
+    color: #a3adba;
 }
 
 .service-input:focus,
 .service-textarea:focus {
-    border-color: rgba(255, 215, 0, 0.45);
-    box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.18);
-    background: var(--surface);
-}
-
-.auth-field .service-input:focus {
-    border-color: rgba(13, 33, 69, 0.18);
-    box-shadow: 0 0 0 4px rgba(13, 33, 69, 0.08);
-    background: #ffffff;
-}
-
-.entry-sheet .service-input:focus,
-.entry-sheet .service-textarea:focus {
-    border-color: rgba(13, 33, 69, 0.18);
-    box-shadow: 0 0 0 4px rgba(13, 33, 69, 0.08);
+    border-color: #c7d2df;
+    box-shadow: 0 0 0 3px rgba(219, 227, 236, 0.42);
     background: #ffffff;
 }
 
@@ -1921,6 +2169,10 @@ button {
     }
 
     .history-entry-card__actions {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-actions-grid--split {
         grid-template-columns: 1fr;
     }
 }

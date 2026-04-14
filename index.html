@@ -16,28 +16,32 @@
         <link
             rel="apple-touch-icon"
             sizes="180x180"
-            href="favicon-pack/apple-touch-icon.png"
+            href="assets/favicons/apple-touch-icon.png"
         />
-        <link rel="icon" type="image/x-icon" href="favicon-pack/favicon.ico" />
+        <link
+            rel="icon"
+            type="image/x-icon"
+            href="assets/favicons/favicon.ico"
+        />
         <link
             rel="icon"
             type="image/png"
             sizes="32x32"
-            href="favicon-pack/favicon-32x32.png"
+            href="assets/favicons/favicon-32x32.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="16x16"
-            href="favicon-pack/favicon-16x16.png"
+            href="assets/favicons/favicon-16x16.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="192x192"
-            href="favicon-pack/favicon-192x192.png"
+            href="assets/favicons/favicon-192x192.png"
         />
-        <link rel="stylesheet" href="styles.css" />
+        <link rel="stylesheet" href="src/css/app.css" />
     </head>
     <body>
         <div class="app-shell">
@@ -132,17 +136,14 @@
                     hidden
                 >
                     <section
-                        class="page-hero page-hero--history"
+                        class="hero hero--history"
                         aria-labelledby="history-page-heading"
                     >
-                        <div class="section-heading">
-                            <h1
-                                id="history-page-heading"
-                                class="page-hero__title"
-                            >
+                        <div class="hero__content">
+                            <h1 id="history-page-heading" class="hero__title">
                                 Historia
                             </h1>
-                            <p class="section-subtitle page-hero__subtitle">
+                            <p class="section-subtitle hero__subtitle">
                                 Edytuj, usuwaj i przeglądaj wpisy serwisowe
                                 auta.
                             </p>
@@ -202,10 +203,15 @@
                         class="profile-card profile-card--vehicles"
                         aria-labelledby="profile-vehicles-title"
                     >
-                        <header class="section-header">
-                            <div class="section-heading">
-                                <h2 id="profile-vehicles-title">Pojazdy</h2>
-                                <p class="section-subtitle">
+                        <header class="hero hero--profile-vehicles">
+                            <div class="hero__content">
+                                <h1
+                                    id="profile-vehicles-title"
+                                    class="hero__title"
+                                >
+                                    Pojazdy
+                                </h1>
+                                <p class="section-subtitle hero__subtitle">
                                     Wybierz aktywne auto lub motocykl i
                                     zarządzaj wszystkimi zapisanymi pojazdami.
                                 </p>
@@ -285,7 +291,9 @@
                                         <div
                                             class="profile-form__grid vehicle-form__grid vehicle-form__grid--basics"
                                         >
-                                            <label class="field vehicle-form__field">
+                                            <label
+                                                class="field vehicle-form__field"
+                                            >
                                                 <span class="field__label">
                                                     Typ pojazdu
                                                 </span>
@@ -303,7 +311,9 @@
                                                 </select>
                                             </label>
 
-                                            <label class="field vehicle-form__field field--full">
+                                            <label
+                                                class="field vehicle-form__field field--full"
+                                            >
                                                 <span class="field__label">
                                                     Nazwa pojazdu
                                                 </span>
@@ -318,7 +328,9 @@
                                                 />
                                             </label>
 
-                                            <label class="field vehicle-form__field">
+                                            <label
+                                                class="field vehicle-form__field"
+                                            >
                                                 <span class="field__label"
                                                     >Rok</span
                                                 >
@@ -334,7 +346,9 @@
                                                 />
                                             </label>
 
-                                            <label class="field vehicle-form__field">
+                                            <label
+                                                class="field vehicle-form__field"
+                                            >
                                                 <span class="field__label">
                                                     Silnik / opis
                                                 </span>
@@ -349,7 +363,9 @@
                                                 />
                                             </label>
 
-                                            <label class="field field--full vehicle-form__field">
+                                            <label
+                                                class="field field--full vehicle-form__field"
+                                            >
                                                 <span class="field__label">
                                                     Przebieg
                                                 </span>
@@ -390,7 +406,9 @@
                                         </div>
 
                                         <div class="vehicle-form-service-grid">
-                                            <div class="vehicle-form-service-card">
+                                            <div
+                                                class="vehicle-form-service-card"
+                                            >
                                                 <p
                                                     class="vehicle-form-service-card__title"
                                                 >
@@ -399,8 +417,12 @@
                                                 <div
                                                     class="vehicle-form-service-fields"
                                                 >
-                                                    <label class="field vehicle-form__field">
-                                                        <span class="field__label">
+                                                    <label
+                                                        class="field vehicle-form__field"
+                                                    >
+                                                        <span
+                                                            class="field__label"
+                                                        >
                                                             Ostatni przebieg
                                                         </span>
                                                         <input
@@ -415,8 +437,12 @@
                                                         />
                                                     </label>
 
-                                                    <label class="field vehicle-form__field">
-                                                        <span class="field__label">
+                                                    <label
+                                                        class="field vehicle-form__field"
+                                                    >
+                                                        <span
+                                                            class="field__label"
+                                                        >
                                                             Data wymiany
                                                         </span>
                                                         <input
@@ -429,7 +455,9 @@
                                                 </div>
                                             </div>
 
-                                            <div class="vehicle-form-service-card">
+                                            <div
+                                                class="vehicle-form-service-card"
+                                            >
                                                 <p
                                                     class="vehicle-form-service-card__title"
                                                 >
@@ -438,8 +466,12 @@
                                                 <div
                                                     class="vehicle-form-service-fields"
                                                 >
-                                                    <label class="field vehicle-form__field">
-                                                        <span class="field__label">
+                                                    <label
+                                                        class="field vehicle-form__field"
+                                                    >
+                                                        <span
+                                                            class="field__label"
+                                                        >
                                                             Ostatni przebieg
                                                         </span>
                                                         <input
@@ -454,8 +486,12 @@
                                                         />
                                                     </label>
 
-                                                    <label class="field vehicle-form__field">
-                                                        <span class="field__label">
+                                                    <label
+                                                        class="field vehicle-form__field"
+                                                    >
+                                                        <span
+                                                            class="field__label"
+                                                        >
                                                             Data wymiany
                                                         </span>
                                                         <input
@@ -528,7 +564,9 @@
                         </button>
                     </section>
 
-                    <details class="profile-card settings-card settings-dropdown">
+                    <details
+                        class="profile-card settings-card settings-dropdown"
+                    >
                         <summary
                             class="settings-dropdown__summary"
                             aria-labelledby="settings-intervals-title"
@@ -550,7 +588,11 @@
                         </summary>
 
                         <div class="settings-dropdown__content">
-                            <p id="settings-interval-empty" class="todo-empty" hidden>
+                            <p
+                                id="settings-interval-empty"
+                                class="todo-empty"
+                                hidden
+                            >
                                 Dodaj pojazd, aby ustawić interwały.
                             </p>
 
@@ -564,17 +606,22 @@
                                         class="settings-maintenance-card"
                                         aria-labelledby="settings-oil-title"
                                     >
-                                        <header class="settings-maintenance-card__header">
+                                        <header
+                                            class="settings-maintenance-card__header"
+                                        >
                                             <h3 id="settings-oil-title">
                                                 Olej silnikowy
                                             </h3>
                                             <p>
-                                                Po ilu kilometrach lub miesiącach
-                                                karta ma zgłaszać kolejny serwis.
+                                                Po ilu kilometrach lub
+                                                miesiącach karta ma zgłaszać
+                                                kolejny serwis.
                                             </p>
                                         </header>
 
-                                        <div class="service-form__grid settings-grid">
+                                        <div
+                                            class="service-form__grid settings-grid"
+                                        >
                                             <label class="field">
                                                 <span class="field__label">
                                                     Interwał km
@@ -613,17 +660,21 @@
                                         class="settings-maintenance-card"
                                         aria-labelledby="settings-timing-title"
                                     >
-                                        <header class="settings-maintenance-card__header">
+                                        <header
+                                            class="settings-maintenance-card__header"
+                                        >
                                             <h3 id="settings-timing-title">
                                                 Napęd rozrządu
                                             </h3>
                                             <p>
-                                                Ustaw własny przebieg i okres dla
-                                                kolejnej wymiany rozrządu.
+                                                Ustaw własny przebieg i okres
+                                                dla kolejnej wymiany rozrządu.
                                             </p>
                                         </header>
 
-                                        <div class="service-form__grid settings-grid">
+                                        <div
+                                            class="service-form__grid settings-grid"
+                                        >
                                             <label class="field">
                                                 <span class="field__label">
                                                     Interwał km
@@ -660,8 +711,9 @@
                                 </div>
 
                                 <p class="profile-note settings-form__note">
-                                    Terminy na dashboardzie przeliczają się od razu
-                                    na podstawie ostatniej wymiany i tych wartości.
+                                    Terminy na dashboardzie przeliczają się od
+                                    razu na podstawie ostatniej wymiany i tych
+                                    wartości.
                                 </p>
 
                                 <div class="vehicle-form__footer">
@@ -677,7 +729,9 @@
                         </div>
                     </details>
 
-                    <details class="profile-card settings-card settings-dropdown">
+                    <details
+                        class="profile-card settings-card settings-dropdown"
+                    >
                         <summary
                             class="settings-dropdown__summary"
                             aria-labelledby="settings-backup-title"
@@ -695,7 +749,9 @@
                                 </p>
                             </div>
                             <div class="settings-dropdown__summary-tail">
-                                <span class="settings-dropdown__meta">JSON</span>
+                                <span class="settings-dropdown__meta"
+                                    >JSON</span
+                                >
                                 <span
                                     class="settings-dropdown__icon"
                                     aria-hidden="true"
@@ -711,7 +767,9 @@
                                 accept="application/json"
                             />
 
-                            <div class="settings-actions-grid settings-actions-grid--split">
+                            <div
+                                class="settings-actions-grid settings-actions-grid--split"
+                            >
                                 <button
                                     id="settings-export-button"
                                     class="vehicle-action vehicle-action--select"
@@ -729,9 +787,9 @@
                             </div>
 
                             <p class="profile-note">
-                                Import zastąpi lokalne dane bieżącego profilu. Jeśli
-                                jesteś zalogowany, aplikacja od razu spróbuje
-                                zsynchronizować import z Firebase.
+                                Import zastąpi lokalne dane bieżącego profilu.
+                                Jeśli jesteś zalogowany, aplikacja od razu
+                                spróbuje zsynchronizować import z Firebase.
                             </p>
                         </div>
                     </details>
@@ -1018,7 +1076,10 @@
                         </button>
                     </header>
 
-                    <form id="maintenance-form" class="service-form maintenance-form">
+                    <form
+                        id="maintenance-form"
+                        class="service-form maintenance-form"
+                    >
                         <div class="service-form__grid maintenance-form__grid">
                             <label class="field">
                                 <span class="field__label">
@@ -1128,7 +1189,7 @@
         <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-        <script src="firebase-config.js"></script>
-        <script src="script.js"></script>
+        <script src="src/js/firebase-config.js"></script>
+        <script src="src/js/app.js"></script>
     </body>
 </html>
